@@ -37,7 +37,7 @@ class Instruction {
 public:
 	enum InstructionType {
 		QuitFilter, 
-		UntilDelimiter, 
+		ThruDelimiter, 
 		BytesMax, 
 		BytesExact, 
 		BytesUnknown
@@ -75,16 +75,16 @@ public:
 
 // read until delimiter is reached
 // (delimiter will be last of uncommittedBytes characters)
-class UntilDelimiterInstruction : public Instruction {
+class ThruDelimiterInstruction : public Instruction {
 public:
 	std::string delimiter;
 
 public:
-	UntilDelimiterInstruction(
+	ThruDelimiterInstruction(
 		const std::string delimiter,
 		const size_t commitSize
 	) :
-		Instruction (Instruction::UntilDelimiter, commitSize),
+		Instruction (Instruction::ThruDelimiter, commitSize),
 		delimiter (delimiter)
 	{
 	}

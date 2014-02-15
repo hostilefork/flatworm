@@ -236,9 +236,9 @@ LTryAgain:
 					const size_t buflenInitial = buflen;
 
 					switch(instruction->type) {
-					case Instruction::UntilDelimiter: {
-						UntilDelimiterInstruction const * inst =
-							dynamic_cast<UntilDelimiterInstruction const *>(instruction);
+					case Instruction::ThruDelimiter: {
+						ThruDelimiterInstruction const * inst =
+							dynamic_cast<ThruDelimiterInstruction const *>(instruction);
 
 						size_t delimPos = sockbuf[which]->unfilteredBytes.find(inst->delimiter);
 						if (delimPos != std::string::npos) {
@@ -492,7 +492,7 @@ LTryAgain:
 					
 					size_t buflen = sockbuf[which]->uncommittedBytes.length();
 					if (
-						(filter[which]->currentInstruction()->type == Instruction::UntilDelimiter)
+						(filter[which]->currentInstruction()->type == Instruction::ThruDelimiter)
 						|| (filter[which]->currentInstruction()->type == Instruction::BytesExact)
 					) {
 						// we put the unfilteredBytes data in when it is ready...
@@ -601,9 +601,9 @@ LTryAgain:
 									sockbuf[which]->unfilteredBytes.append(buffer + needToRead[which].getKnownValue(), len - needToRead[which].getKnownValue());
 								}
 
-							} else if (instruction->type == Instruction::UntilDelimiter) {
-								UntilDelimiterInstruction const * inst =
-									dynamic_cast<UntilDelimiterInstruction const *>(instruction);
+							} else if (instruction->type == Instruction::ThruDelimiter) {
+								ThruDelimiterInstruction const * inst =
+									dynamic_cast<ThruDelimiterInstruction const *>(instruction);
 
 								sockbuf[which]->unfilteredBytes.append(buffer, len);
 								size_t delimPos = sockbuf[which]->unfilteredBytes.find(inst->delimiter);
@@ -616,8 +616,8 @@ LTryAgain:
 									buflen += delimPos + inst->delimiter.length();
 								}
 							} else if (instruction->type == Instruction::BytesExact) {
-								UntilDelimiterInstruction const * inst =
-									dynamic_cast<UntilDelimiterInstruction const *>(instruction);
+								ThruDelimiterInstruction const * inst =
+									dynamic_cast<ThruDelimiterInstruction const *>(instruction);
 
 								if (static_cast<size_t>(len) >= needToRead[which].getKnownValue()) {
 									sockbuf[which]->uncommittedBytes += sockbuf[which]->unfilteredBytes;
@@ -647,9 +647,9 @@ LTryAgain:
 									dynamic_cast<BytesMaxInstruction const*>(instruction);
 
 								needToRead[which] = inst->maxByteCount;
-							} else if (instruction->type == Instruction::UntilDelimiter) {
-								UntilDelimiterInstruction const * inst =
-									dynamic_cast<UntilDelimiterInstruction const *>(instruction);
+							} else if (instruction->type == Instruction::ThruDelimiter) {
+								ThruDelimiterInstruction const * inst =
+									dynamic_cast<ThruDelimiterInstruction const *>(instruction);
 
 								if (difference > 0)
 									needToRead[which] = 0;

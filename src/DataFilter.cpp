@@ -85,7 +85,7 @@ std::auto_ptr<Instruction> DataFilter::firstInstruction() {
 	chunkState = BeginChunk;
 
 	return std::auto_ptr<Instruction>(
-		new UntilDelimiterInstruction("\r\n", 0)
+		new ThruDelimiterInstruction("\r\n", 0)
 	);
 }		
 
@@ -157,9 +157,9 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 						NotReached(); 
 						break;
 
-					case Instruction::UntilDelimiter: {
-						UntilDelimiterInstruction* inst =
-							dynamic_cast<UntilDelimiterInstruction*>(subInstruction.get());
+					case Instruction::ThruDelimiter: {
+						ThruDelimiterInstruction* inst =
+							dynamic_cast<ThruDelimiterInstruction*>(subInstruction.get());
 						size_t delimPos = subUnfiltered.find(inst->delimiter);
 						if (delimPos != std::string::npos) {
 							size_t offset = subUncommitted.length();
@@ -351,7 +351,7 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 			// new test... can we read EXACT bytes?
 			Assert(uncommittedBytes.length() == chunkSize.getKnownValue());
 			instruction = std::auto_ptr<Instruction>(
-				new UntilDelimiterInstruction(
+				new ThruDelimiterInstruction(
 					"\r\n",
 					uncommittedBytes.length()
 				)
@@ -365,7 +365,7 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 		chunkSoFar += uncommittedBytes.length();
 		Assert(chunkSoFar <= chunkSize.getKnownValue());
 		if (chunkSoFar == chunkSize.getKnownValue()) {
-			instruction = Instruction::UntilDelimiter(
+			instruction = Instruction::ThruDelimiter(
 				"\r\n",
 				uncommittedBytes.length()
 			);
@@ -386,7 +386,7 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 		Assert(uncommittedBytes == "\r\n");
 
 		instruction = std::auto_ptr<Instruction>(new 
-			UntilDelimiterInstruction(
+			ThruDelimiterInstruction(
 				"\r\n",
 				uncommittedBytes.length()
 			)

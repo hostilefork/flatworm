@@ -44,7 +44,7 @@ public:
 
 	std::auto_ptr<Instruction> firstInstruction() /* override */ {
 		return std::auto_ptr<Instruction>(
-			new UntilDelimiterInstruction("\r\n", 0)
+			new ThruDelimiterInstruction("\r\n", 0)
 		);
 	}
 
@@ -197,7 +197,7 @@ public:
 		}
 
 		return std::auto_ptr<Instruction>(
-			new UntilDelimiterInstruction(
+			new ThruDelimiterInstruction(
 				"\r\n",
 				uncommittedBytes.length()
 			)

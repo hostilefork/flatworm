@@ -19,6 +19,6 @@ In any case, I'll maintain some amount of documentation at the project's homepag
 
 [http://flatworm.hostilefork.com](http://flatworm.hostilefork.com)
 
-Copyright (c) 2008-2014 hostilefork.com
+Copyright (c) 2008 *(- 2014?)* hostilefork.com
 
 (3Proxy was licensed as BSD.  So should anyone care for some reason, I'm licensing my modifications under those terms as well.)
