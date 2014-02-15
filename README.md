@@ -1,5 +1,4 @@
-Flatworm
-========
+![Flatworm logo](https://raw2.github.com/hostilefork/flatworm/master/flatworm-logo.jpg)
 
 Flatworm is a proxy (simpler than a ["Squid"](http://en.wikipedia.org/wiki/Squid_(software)) :-P) that allows for easy bookkeeping while rewriting traffic.  The original goal was to inject frames into YouTube videos as they went by if one were serving as a proxy for a network connection to youtube.com.  It evolved into an attempt to build a general purpose system for mutating http traffic while also mutating the headers to be consistent with the mutated data.
 
@@ -22,3 +21,5 @@ In any case, I'll maintain some amount of documentation at the project's homepag
 Copyright (c) 2008 *(- 2014?)* hostilefork.com
 
 (3Proxy was licensed as BSD.  So should anyone care for some reason, I'm licensing my modifications under those terms as well.)
+
+(The Flatworm sketch I found on Google Images but could not determine the artist.  I hope they don't mind me borrowing it for something that is gratis software and non-commercial in nature.  If you drew it--or know who did--please let me know.)
