@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\pcre">
+      <UniqueIdentifier>{5e179f64-0c6b-4d19-98e9-29f04f05374c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\pcre">
+      <UniqueIdentifier>{01de1b58-7818-4796-a31a-23cc51505662}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\flv">
+      <UniqueIdentifier>{2268c3ee-5d82-40f2-a113-7f6513c04e08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\parasock">
+      <UniqueIdentifier>{0ceab09a-d8a9-4adc-bdfc-2604977cf9d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\parasock">
+      <UniqueIdentifier>{578508ac-8233-474c-b8d3-ed4f594d2ed3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ServerHeaderFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\base64.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ClientHeaderFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DataFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HeaderFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OneLineFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PcreDataFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ProxyServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ProxyServerErrors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RequestLineFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ResponseLineFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\config.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\pcre.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\pcre_internal.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\pcreposix.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\ucp.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\ucpinternal.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pcre\ucptable.h">
+      <Filter>Header Files\pcre</Filter>
+    </ClInclude>
+    <ClInclude Include="src\flv\flv.h">
+      <Filter>Header Files\flv</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FlvFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\DeadFilter.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\Filter.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\Helpers.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\NetUtils.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\PassthruFilter.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\SockBuf.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+    <ClInclude Include="src\parasock\SockPair.h">
+      <Filter>Header Files\parasock</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\ProxyServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DataFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PcreDataFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\ucptable.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_compile.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_config.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_dfa_exec.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_dftables.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_exec.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_fullinfo.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_get.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_globals.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_info.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_maketables.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_newline.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_ord2utf8.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_refcount.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_study.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_tables.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_try_flipped.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_ucp_searchfuncs.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_valid_utf8.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_version.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_xclass.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcreposix.c">
+      <Filter>Source Files\pcre</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parasock\SockPair.cpp">
+      <Filter>Source Files\parasock</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parasock\Filter.cpp">
+      <Filter>Source Files\parasock</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parasock\NetUtils.cpp">
+      <Filter>Source Files\parasock</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parasock\SockBuf.cpp">
+      <Filter>Source Files\parasock</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
