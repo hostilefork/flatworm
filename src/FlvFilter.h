@@ -52,7 +52,7 @@ private:
 public:
 	FlvFilter (
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		const HeaderFilter& filterHeader
 	) :
 		Filter(sockpair, whichInput),

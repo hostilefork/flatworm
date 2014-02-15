@@ -158,7 +158,7 @@ typedef enum {
 
 
 struct EXTPARAM {
-	TIMEOUT timeouts[10];
+	Timeout timeouts[10];
 	char * conffile;
 	SRVPARAM *services;
 	int threadinit, counterd, haveerror, paused,
@@ -176,16 +176,16 @@ struct EXTPARAM {
 	char delimchar;
 public:
 	EXTPARAM() { 
-		timeouts[0] = TIMEOUT(1);
-		timeouts[1] = TIMEOUT(5);
-		timeouts[2] = TIMEOUT(30);
-		timeouts[3] = TIMEOUT(60);
-		timeouts[4] = TIMEOUT(180);
-		timeouts[5] = TIMEOUT(1800);
-		timeouts[6] = TIMEOUT(15);
-		timeouts[7] = TIMEOUT(60);
-		timeouts[8] = TIMEOUT(0);
-		timeouts[9] = TIMEOUT(0);
+		timeouts[0] = Timeout(1);
+		timeouts[1] = Timeout(5);
+		timeouts[2] = Timeout(30);
+		timeouts[3] = Timeout(60);
+		timeouts[4] = Timeout(180);
+		timeouts[5] = Timeout(1800);
+		timeouts[6] = Timeout(15);
+		timeouts[7] = Timeout(60);
+		timeouts[8] = Timeout(0);
+		timeouts[9] = Timeout(0);
 
 		conffile = NULL;
 		services = NULL;
@@ -231,7 +231,7 @@ typedef enum {
 	CONNECTION_L,
 	DNS_TO,
 	CHAIN_TO
-}TIMEOUT_TYPES;
+}Timeout_TYPES;
 
 
 typedef void * (* ProxyWorkerFUNC)(ProxyWorker *);

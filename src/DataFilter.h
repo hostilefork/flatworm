@@ -106,7 +106,6 @@ private:
 	size_t chunkSoFar;
 	Knowable<size_t> chunkSize;
 	std::string chunkString;
-	bool subrunFilterning;
 
 private:
 	std::auto_ptr<Chunk> currentChunk;
@@ -118,7 +117,7 @@ private:
 public:
 	DataFilter(
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		const HeaderFilter& filterHeaderServer
 	);
 

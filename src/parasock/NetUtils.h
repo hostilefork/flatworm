@@ -11,6 +11,49 @@
 
 #include <winsock2.h>
 
+
+// There are many different ways of specifying timeouts
+// This is better for type checking, especially in parameter lists where
+// it can be easy to mix up a integer representing a size vs. an integer
+// representing a timeout
+class Timeout {
+private:
+	int sec;
+	int usec;
+
+public:
+	Timeout () :
+		sec (-1),
+		usec (-1)
+	{
+	}
+
+	explicit Timeout (int sec, int usec = 0) :
+		sec (sec),
+		usec (usec)
+	{
+	}
+
+	DWORD getMilliseconds() const {
+		if ((this->sec == -1) || (this->usec == -1)) {
+			DebugBreak();
+			return 0;
+		}
+		return sec * 1000 + usec;
+	}
+
+	int getSeconds() const {
+		if ((this->sec == -1) || (this->usec == -1)) {
+			DebugBreak();
+			return 0;
+		}
+		return sec;
+	}
+
+	virtual ~Timeout () {}
+};
+
+
 #ifndef EAGAIN
 #define EAGAIN WSAEWOULDBLOCK
 #endif
@@ -38,7 +81,7 @@ struct MYPOLLFD {
  short  revents;  /* events returned */
 };
 
-int mypoll(MYPOLLFD *fds, unsigned int nfds, int timeout);
+int mypoll(MYPOLLFD *fds, unsigned int nfds, Timeout timeout);
 #ifndef POLLIN
 #define POLLIN 1
 #endif
@@ -60,51 +103,10 @@ int mypoll(MYPOLLFD *fds, unsigned int nfds, int timeout);
 #define poll mypoll
 #endif
 
-// There are many different ways of specifying timeouts
-// This is better for type checking, especially in parameter lists where
-// it can be easy to mix up a integer representing a size vs. an integer
-// representing a timeout
-class TIMEOUT {
-private:
-	int timeosec;
-	int timeousec;
-
-public:
-	TIMEOUT() :
-		timeosec (-1),
-		timeousec (-1)
-	{
-	}
-
-	TIMEOUT(int timeosec, int timeousec = 0) :
-		timeosec (timeosec),
-		timeousec (timeousec)
-	{
-	}
-
-	DWORD GetMilliseconds() const {
-		if (this->timeosec == -1 || this->timeousec == -1) {
-			DebugBreak();
-			return 0;
-		}
-		return timeosec * 1000 + timeousec;
-	}
-
-	int GetSeconds() const {
-		if (this->timeosec == -1 || this->timeousec == -1) {
-			DebugBreak();
-			return 0;
-		}
-		return timeosec;
-	}
-
-	virtual ~TIMEOUT() {}
-};
-
 int socksendto(
 	SOCKET sock, struct sockaddr_in * sin,
 	const char * buf, int bufsize,
-	const TIMEOUT to
+	const Timeout timeout
 );
 
 int sockrecvfrom(
@@ -112,7 +114,7 @@ int sockrecvfrom(
 	struct sockaddr_in * sin,
 	char * buf,
 	int bufsize,
-	const TIMEOUT to
+	const Timeout timeout
 );
 
 #endif

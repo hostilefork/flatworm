@@ -16,14 +16,14 @@
 #include "DeadFilter.h"
 
 void SockPair::doBidirectionalFilteredProxyEx(
-	size_t (&readSoFar)[DIRECTION_MAX],
-	const TIMEOUT timeo,
-	Filter* (&filter)[DIRECTION_MAX]
+	size_t (&readSoFar)[FlowDirectionMax],
+	const Timeout timeo,
+	Filter* (&filter)[FlowDirectionMax]
 ) {
-	size_t readInitial[DIRECTION_MAX];
-	size_t sentSoFar[DIRECTION_MAX];
-	CodeBlock() {
-		DIRECTION which;
+	size_t readInitial[FlowDirectionMax];
+	size_t sentSoFar[FlowDirectionMax];
+	{
+		FlowDirection which;
 		ForEachDirection(which) {
 			readInitial[which] = readSoFar[which];
 			sentSoFar[which] = 0;
@@ -43,8 +43,8 @@ void SockPair::doBidirectionalFilteredProxyEx(
 		filter
 	);
 
-	CodeBlock() {
-		DIRECTION which;
+	{
+		FlowDirection which;
 		ForEachDirection(which) {
 			if (
 				socketClosed[which]
@@ -61,29 +61,29 @@ void SockPair::doBidirectionalFilteredProxyEx(
 
 
 size_t SockPair::doUnidirectionalProxyCore(
-	const DIRECTION which,
+	const FlowDirection which,
 	bool& timedOut,
 	bool& socketClosed,
-	const TIMEOUT timeout
+	const Timeout timeout
 ) {
 	// If you don't know how much you want, just read while data is available
 
-	size_t readSoFar[DIRECTION_MAX];
-	size_t sentSoFar[DIRECTION_MAX];
-	CodeBlock() {
-		DIRECTION whichZero;
+	size_t readSoFar[FlowDirectionMax];
+	size_t sentSoFar[FlowDirectionMax];
+	{
+		FlowDirection whichZero;
 		ForEachDirection(whichZero) {
 			readSoFar[whichZero] = 0;
 			sentSoFar[whichZero] = 0;
 		}
 	}
 
-	DeadFilter deadFilterClient (*this, CLIENT);
-	DeadFilter deadFilterServer (*this, SERVER);
-	Filter* filter[DIRECTION_MAX] = { &deadFilterClient, &deadFilterServer };
+	DeadFilter deadFilterClient (*this, ClientToServer);
+	DeadFilter deadFilterServer (*this, ServerToClient);
+	Filter* filter[FlowDirectionMax] = { &deadFilterClient, &deadFilterServer };
 
-	bool readAZero[DIRECTION_MAX];
-	bool socketClosedPair[DIRECTION_MAX];
+	bool readAZero[FlowDirectionMax];
+	bool socketClosedPair[FlowDirectionMax];
 	doBidirectionalFilteredProxyCore(
 		readSoFar,
 		sentSoFar,
@@ -100,7 +100,7 @@ size_t SockPair::doUnidirectionalProxyCore(
 
 
 void SockPair::filterHelper(
-	const DIRECTION which,
+	const FlowDirection which,
 	const size_t newDataOffset,
 	const size_t readSoFar,
 	Filter& filter,
@@ -153,15 +153,15 @@ void SockPair::doBidirectionalFilteredProxyCore(
 	bool (&socketClosed)[2],
 	bool (&readAZero)[2],
 	bool& timedOut,
-	const TIMEOUT timeo,
-	Filter* (&filter)[DIRECTION_MAX]
+	const Timeout timeout,
+	Filter* (&filter)[FlowDirectionMax]
 ) {
 	timedOut = false;
 
-	size_t received[DIRECTION_MAX];
-	size_t sent[DIRECTION_MAX];
-	CodeBlock() {
-		DIRECTION which;
+	size_t received[FlowDirectionMax];
+	size_t sent[FlowDirectionMax];
+	{
+		FlowDirection which;
 		ForEachDirection(which) {
 			readAZero[which] = false;
 			received[which] = 0;
@@ -183,14 +183,14 @@ void SockPair::doBidirectionalFilteredProxyCore(
 
 	// We loop until an exit condition is reached
 	size_t sleeptime = 0;
-	Knowable<size_t> needToRead[DIRECTION_MAX] = { UNKNOWN, UNKNOWN };
-	size_t needToWrite[DIRECTION_MAX];
+	Knowable<size_t> needToRead[FlowDirectionMax] = { UNKNOWN, UNKNOWN };
+	size_t needToWrite[FlowDirectionMax];
 	do {
 
 		// start by saying we read nothing
 LTryAgain:
-		CodeBlock() {
-			DIRECTION which;
+		{
+			FlowDirection which;
 			ForEachDirection(which) {
 				// must always attach a filter.
 				// when filter quits, we stop and return...
@@ -341,10 +341,10 @@ LTryAgain:
 		}
 
 		if (
-			(needToRead[SERVER].isKnownToBe(0))
-			&& (needToWrite[SERVER] == 0)
-			&& (needToWrite[CLIENT] == 0)
-			&& (needToRead[CLIENT].isKnownToBe(0))
+			(needToRead[ServerConnection].isKnownToBe(0))
+			&& (needToWrite[ServerConnection] == 0)
+			&& (needToWrite[ClientConnection] == 0)
+			&& (needToRead[ClientConnection].isKnownToBe(0))
 		) {
 			break;
 		}
@@ -352,12 +352,12 @@ LTryAgain:
 		// Okay, now we know what we're doing.  We reset the sizes each time which is 
 		// somewhat inefficient but I'm trying this angle...
 
-		Knowable<size_t> needToReadLast[DIRECTION_MAX] = { UNKNOWN, UNKNOWN };
-		size_t needToWriteLast[DIRECTION_MAX];
+		Knowable<size_t> needToReadLast[FlowDirectionMax] = { UNKNOWN, UNKNOWN };
+		size_t needToWriteLast[FlowDirectionMax];
 
-		MYPOLLFD fds[DIRECTION_MAX];
-		CodeBlock() {
-			DIRECTION which;
+		MYPOLLFD fds[FlowDirectionMax];
+		{
+			FlowDirection which;
 			ForEachDirection(which) {
 				needToReadLast[which] = needToRead[which];
 				needToWriteLast[which] = needToWrite[which];
@@ -374,8 +374,8 @@ LTryAgain:
 		}
 
 		// do the poll of the sockets and check the result
-		CodeBlock() {
-			int pollRes = poll(fds, DIRECTION_MAX, timeo.GetMilliseconds());
+		{
+			int pollRes = poll(fds, FlowDirectionMax, timeout);
 			if(pollRes == SOCKET_ERROR) {
 				int errorno = WSAGetLastError();
 				if(errorno == EINTR) {
@@ -391,20 +391,20 @@ LTryAgain:
 				return;
 			}
 
-			DIRECTION which;
+			FlowDirection which;
 			ForEachDirection(which) {
 			if( fds[which].revents & (POLLERR|POLLHUP|POLLNVAL ))
 				throw "POLLERR|POLLHUP|POLLNVAL";
 			}
 		}
 
-		CodeBlock() { // do the sends, small chunks so we can time out?
-			DIRECTION which;
+		{ // do the sends, small chunks so we can time out?
+			FlowDirection which;
 			ForEachDirection(which) {
 				if(fds[which].revents & POLLOUT) {
 					Assert(needToWrite[which] > 0);
 
-					size_t charsSent = 0;
+					size_t bytesSent = 0;
 
 					while (
 						!sockbuf[which]->placeholders.empty()
@@ -427,7 +427,7 @@ LTryAgain:
 								sockbuf[which]->sock,
 								&sockbuf[which]->sin,
 								placeholder->contents.c_str(),
-								static_cast<int>(len), timeo.GetMilliseconds()
+								static_cast<int>(len), timeout
 							); 
 						} else {
 							for (size_t index = 0; index < len; index++) {
@@ -436,7 +436,7 @@ LTryAgain:
 									&sockbuf[which]->sin,
 									placeholder->contents.c_str() + index,
 									static_cast<int>(1),
-									timeo.GetMilliseconds()
+									timeout
 								);
 								if (res != 1)
 									break;
@@ -480,8 +480,8 @@ LTryAgain:
 			}
 		}
 
-		CodeBlock() { // do the receives
-			DIRECTION which;
+		{ // do the receives
+			FlowDirection which;
 			ForEachDirection(which) {
 				if ((fds[which].revents & POLLIN)) {
 					Assert(
@@ -512,7 +512,7 @@ LTryAgain:
 							&sockbuf[which]->sin,
 							buffer,
 							BUFSIZE,
-							timeo.GetMilliseconds()
+							timeout
 						);
 
 						if (len == 0) {
@@ -667,7 +667,7 @@ LTryAgain:
 		}
 
 		if(sleeptime > 0) {
-			if(sleeptime > timeo.GetMilliseconds()) {
+			if(sleeptime > timeout.getMilliseconds()) {
 				throw "Sleep exceeds timeout in sock mapping.";
 			}
 			usleep(static_cast<DWORD>(sleeptime * SLEEPTIME));
@@ -675,8 +675,8 @@ LTryAgain:
 		}
 	} while (true);
 
-	CodeBlock() {
-		DIRECTION which;
+	{
+		FlowDirection which;
 		ForEachDirection(which) {
 			Assert(filter[which]->currentInstruction()->type == Instruction::QuitFilter);
 			if (sockbuf[which]->definitelyHasFutureWrites()) {

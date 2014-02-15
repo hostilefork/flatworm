@@ -24,7 +24,7 @@ time_t basetime = 0;
 
 PcreDataFilter::PcreDataFilter (
 	SockPair& sockpair,
-	const DIRECTION whichInput,
+	const FlowDirection whichInput,
 	const HeaderFilter& filterHeaderServer,
 	const std::string regularExpression,
 	const std::string replaceString
@@ -35,7 +35,7 @@ PcreDataFilter::PcreDataFilter (
 	pcre *re = NULL;
 
 	int offset = 4;	
-	CodeBlock() {
+	{
 		const char * errptr;
 		this->re = pcre_compile(
 			regularExpression.c_str(),

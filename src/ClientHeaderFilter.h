@@ -22,7 +22,7 @@ public:
 public:
 	ClientHeaderFilter (
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		std::string& requestOriginal,
 		bool isconnect,
 		bool transparent,

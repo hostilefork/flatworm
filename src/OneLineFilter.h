@@ -12,7 +12,7 @@
 class OneLineFilter : public Filter {
 
 public:
-	OneLineFilter (SockPair& sockpair, const DIRECTION whichInput) : 
+	OneLineFilter (SockPair& sockpair, const FlowDirection whichInput) : 
 		Filter (sockpair, whichInput)
 	{
 	}

@@ -21,7 +21,7 @@ public:
 public:
 	ServerHeaderFilter (
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		bool isconnect,
 		bool redirect
 	) : 

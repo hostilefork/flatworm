@@ -20,8 +20,6 @@ inline void NotReached() {
 	Assert(false);
 }
 
-#define CodeBlock() if(1)
-#define REVIEW() if (0)
 #define FallThrough() ;
 #define Noop() ;
 

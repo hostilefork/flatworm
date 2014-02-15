@@ -13,7 +13,7 @@
 
 class DeadFilter : public Filter {
 public:
-	DeadFilter (SockPair& sockpair, const DIRECTION whichInput) : 
+	DeadFilter (SockPair& sockpair, const FlowDirection whichInput) : 
 		Filter (sockpair, whichInput)
 	{
 	}

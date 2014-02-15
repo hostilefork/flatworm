@@ -138,7 +138,7 @@ public:
 
 	void cleanCheckpoint();
 	void shutdownAndClose();
-	void failureShutdown(const std::string message, TIMEOUT timeout);
+	void failureShutdown(const std::string message, Timeout timeout);
 
 	virtual ~SockBuf();
 };

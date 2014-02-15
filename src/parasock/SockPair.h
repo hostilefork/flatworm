@@ -11,17 +11,17 @@
 
 class Filter;
 
-typedef enum {
-	CLIENT,
-	SERVER,
-	DIRECTION_MAX
-} DIRECTION;
+enum FlowDirection {
+	ClientToServer,
+	ServerToClient,
+	FlowDirectionMax
+};
 #define ForEachDirection(which) \
-	for (which = CLIENT; \
-		which != DIRECTION_MAX; \
-		which = (which == CLIENT) ? SERVER : DIRECTION_MAX)
-inline DIRECTION OtherDirection(DIRECTION which) {
-	return (which == CLIENT) ? SERVER : CLIENT;
+	for (which = ClientToServer; \
+		which != FlowDirectionMax; \
+		which = (which == ClientToServer) ? ServerToClient : FlowDirectionMax)
+inline FlowDirection OtherDirection(FlowDirection which) {
+	return (which == ClientToServer) ? ServerToClient : ClientToServer;
 }
 
 
@@ -29,7 +29,7 @@ class SockPair {
 
 	friend class Filter;
 
-private:
+public:
 	enum WhichConnection {
 		ClientConnection = 0,
 		ServerConnection = 1
@@ -37,6 +37,8 @@ private:
 
 public: // Need to work on this to make it private, 3Proxy startup is wily
 	std::auto_ptr<SockBuf> sockbuf[2];
+	SockPair () {
+	}
 
 private:
 	// Disable copying C++98 style
@@ -44,7 +46,7 @@ private:
 
 private:
 	void filterHelper(
-		const DIRECTION which,
+		const FlowDirection which,
 		const size_t offsetAmount,
 		const size_t readSoFar,
 		Filter& filter,
@@ -54,56 +56,57 @@ private:
 private:
 	// sends FILTERED data from OtherDirection(which) to which
 	size_t doUnidirectionalProxyCore(
-		const DIRECTION which,
-		bool &timedOut,
-		bool& socketClosed,
-		const TIMEOUT timeout
+		const FlowDirection which,
+		bool & timedOut,
+		bool & socketClosed,
+		const Timeout timeout
 	); 
 
 public:
-	size_t doUnidirectionalProxy(const DIRECTION which, const TIMEOUT timeout) {
+	size_t doUnidirectionalProxy(const FlowDirection which, const Timeout timeout) {
 		bool timedOut;
 		bool socketClosed;
-		size_t charsSent = doUnidirectionalProxyCore(
+		size_t bytesSent = doUnidirectionalProxyCore(
 			which,
 			timedOut,
 			socketClosed,
 			timeout
 		);
-		return charsSent;
+		return bytesSent;
 	}
 
 private:
 	void doBidirectionalFilteredProxyCore(
-		size_t (&readSoFar)[DIRECTION_MAX],
-		size_t (&sentSoFar)[DIRECTION_MAX],
-		bool (&socketClosed)[2], bool (&readAZero)[2],
-		bool& timedOut,
-		const TIMEOUT timeo,
-		Filter* (&filter)[DIRECTION_MAX]
+		size_t (&readSoFar)[FlowDirectionMax],
+		size_t (&sentSoFar)[FlowDirectionMax],
+		bool (&socketClosed)[2],
+		bool (&readAZero)[2],
+		bool & timedOut,
+		Timeout timeout,
+		Filter* (&filter)[FlowDirectionMax]
 	);
 public:
 	void doBidirectionalFilteredProxyEx(
-		size_t (&readSoFar)[DIRECTION_MAX],
-		const TIMEOUT timeo,
-		Filter* (&filter)[DIRECTION_MAX]
+		size_t (&readSoFar)[FlowDirectionMax],
+		Timeout timeout,
+		Filter * (&filter)[FlowDirectionMax]
 	);
 
 	void doBidirectionalFilteredProxy(
-		size_t (&readSoFar)[DIRECTION_MAX],
-		const TIMEOUT timeo,
-		Filter* (&filter)[DIRECTION_MAX]
+		size_t (&readSoFar)[FlowDirectionMax],
+		Timeout timeout,
+		Filter * (&filter)[FlowDirectionMax]
 	) {
-		return doBidirectionalFilteredProxyEx(readSoFar, timeo, filter);
+		return doBidirectionalFilteredProxyEx(readSoFar, timeout, filter);
 	}
 
 	void cleanCheckpoint() {
-		sockbuf[CLIENT]->cleanCheckpoint();
-		sockbuf[SERVER]->cleanCheckpoint();
+		sockbuf[ClientConnection]->cleanCheckpoint();
+		sockbuf[ServerConnection]->cleanCheckpoint();
 	}
 
-	void failureShutdown(const std::string message, const TIMEOUT timeout) {
-		sockbuf[CLIENT]->failureShutdown(message, timeout);
+	void failureShutdown(const std::string message, const Timeout timeout) {
+		sockbuf[ClientConnection]->failureShutdown(message, timeout);
 	}
 };
 

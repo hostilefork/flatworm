@@ -76,7 +76,7 @@ public:
 public:
 	RequestLineFilter (
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		unsigned& ckeepalive,
 		const std::string lastRequest,
 		const std::string lastRequestOriginal,

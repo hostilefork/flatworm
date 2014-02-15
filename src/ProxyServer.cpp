@@ -44,8 +44,8 @@ int parsehostname(
 	}
 	proxy->req.sin_port=htons(port);
 	proxy->req.sin_addr.s_addr = getip(proxy->hostname.c_str());
-	proxy->sockpair.sockbuf[SERVER]->sin.sin_addr.s_addr = 0;
-	proxy->sockpair.sockbuf[SERVER]->sin.sin_port = 0;
+	proxy->sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_addr.s_addr = 0;
+	proxy->sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_port = 0;
 	return 0;
 }
 
@@ -102,7 +102,7 @@ int parseconnusername(
 	if ((sb=username.find(conf.delimchar)) != std::string::npos) {
 		if (
 			proxy->hostname.empty()
-			&& (proxy->sockpair.sockbuf[SERVER]->sock == INVALID_SOCKET)
+			&& (proxy->sockpair.sockbuf[SockPair::ServerConnection]->sock == INVALID_SOCKET)
 		) {
 			return 2;
 		}
@@ -368,36 +368,36 @@ ProxyWorker::ProxyWorker(const ProxyWorker* clientproxy) {
 	this->time_start = clientproxy->time_start;
 
 	SockBuf* sockbufClient = new SockBuf();
-	*sockbufClient = *clientproxy->sockpair.sockbuf[CLIENT];
-	this->sockpair.sockbuf[CLIENT].reset(sockbufClient);
+	*sockbufClient = *clientproxy->sockpair.sockbuf[SockPair::ClientConnection];
+	this->sockpair.sockbuf[SockPair::ClientConnection].reset(sockbufClient);
 
 	SockBuf* sockbufServer = new SockBuf();
-	*sockbufServer = *clientproxy->sockpair.sockbuf[SERVER];
-	this->sockpair.sockbuf[SERVER].reset(sockbufServer);
+	*sockbufServer = *clientproxy->sockpair.sockbuf[SockPair::ServerConnection];
+	this->sockpair.sockbuf[SockPair::ServerConnection].reset(sockbufServer);
 }
 
 
 void ProxyWorker::connectToServer(const int operation) {
 	if (
-		(sockpair.sockbuf[SERVER]->sock == INVALID_SOCKET)
+		(sockpair.sockbuf[SockPair::ServerConnection]->sock == INVALID_SOCKET)
 		&& (operation != DNSRESOLVE && operation != ADMIN)
 	) {
-		if (sockpair.sockbuf[SERVER]->sin.sin_addr.s_addr == 0) {
+		if (sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_addr.s_addr == 0) {
 			if (req.sin_addr.s_addr == 0) {
 				// req.sin_addr.s_addr should have been found by parsehost name
 				throw &Proxyerror_Host_Not_Found;
 			}
-			sockpair.sockbuf[SERVER]->sin.sin_addr.s_addr =
+			sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_addr.s_addr =
 				req.sin_addr.s_addr;
 		}
 
-		if(sockpair.sockbuf[SERVER]->sin.sin_port == 0)
-			sockpair.sockbuf[SERVER]->sin.sin_port = req.sin_port;
+		if(sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_port == 0)
+			sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_port = req.sin_port;
 
 		SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (sock == INVALID_SOCKET)
 			throw "Error opening socket to server";
-		sockpair.sockbuf[SERVER]->sock = sock;
+		sockpair.sockbuf[SockPair::ServerConnection]->sock = sock;
 	}
 
 	if (extip == 0) {
@@ -406,7 +406,7 @@ void ProxyWorker::connectToServer(const int operation) {
 
 		struct linger lg;
 		setsockopt(
-			sockpair.sockbuf[SERVER]->sock,
+			sockpair.sockbuf[SockPair::ServerConnection]->sock,
 			SOL_SOCKET,
 			SO_LINGER,
 			reinterpret_cast<char *>(&lg),
@@ -419,23 +419,23 @@ void ProxyWorker::connectToServer(const int operation) {
 		if (
 			(extport == 0)
 			&& (srv->targetport == 0)
-			&& (ntohs(sockpair.sockbuf[CLIENT]->sin.sin_port) > 1023)
+			&& (ntohs(sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_port) > 1023)
 		) {
-			bindsa.sin_port = sockpair.sockbuf[CLIENT]->sin.sin_port;
+			bindsa.sin_port = sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_port;
 		} else {
 			bindsa.sin_port = extport;
 		}
 		bindsa.sin_addr.s_addr = extip;
 
 		if (-1 == bind(
-			sockpair.sockbuf[SERVER]->sock,
+			sockpair.sockbuf[SockPair::ServerConnection]->sock,
 			(struct sockaddr*)&bindsa,
 			sizeof(bindsa)
 		)) {
 			int errorno = WSAGetLastError();
 			bindsa.sin_port = 0; // try accepting any port?
 			if(-1 == bind(
-				sockpair.sockbuf[SERVER]->sock,
+				sockpair.sockbuf[SockPair::ServerConnection]->sock,
 				(struct sockaddr*)&bindsa,
 				sizeof(bindsa)
 			)) {
@@ -446,33 +446,33 @@ void ProxyWorker::connectToServer(const int operation) {
 			Assert(extip == 0);
 		}
 
-		sockpair.sockbuf[SERVER]->sin.sin_family = AF_INET;
+		sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_family = AF_INET;
 		if ((operation >= 256) || (operation & CONNECT)) {
 			unsigned long ul;
 			int res = connect(
-				sockpair.sockbuf[SERVER]->sock,
-				(struct sockaddr *)&sockpair.sockbuf[SERVER]->sin,
-				sizeof(sockpair.sockbuf[SERVER]->sin)
+				sockpair.sockbuf[SockPair::ServerConnection]->sock,
+				(struct sockaddr *)&sockpair.sockbuf[SockPair::ServerConnection]->sin,
+				sizeof(sockpair.sockbuf[SockPair::ServerConnection]->sin)
 			);
 			if (res != 0) {
 				throw "Could not connect bound socket from client to server";
 			}
 
-			ioctlsocket(sockpair.sockbuf[SERVER]->sock, FIONBIO, &ul);
+			ioctlsocket(sockpair.sockbuf[SockPair::ServerConnection]->sock, FIONBIO, &ul);
 
-			SASIZETYPE size = sizeof(sockpair.sockbuf[SERVER]->sin);
+			SASIZETYPE size = sizeof(sockpair.sockbuf[SockPair::ServerConnection]->sin);
 			if (-1 == getsockname(
-				sockpair.sockbuf[SERVER]->sock,
+				sockpair.sockbuf[SockPair::ServerConnection]->sock,
 				(struct sockaddr *)&bindsa, &size
 			)) {
 				throw "getsockname on CONNECT or operation >= 256 did not work";
 			}
 			extip = bindsa.sin_addr.s_addr;
 		} else {
-			SASIZETYPE size = sizeof(sockpair.sockbuf[SERVER]->sin);
+			SASIZETYPE size = sizeof(sockpair.sockbuf[SockPair::ServerConnection]->sin);
 			if (-1 == getsockname(
-				sockpair.sockbuf[SERVER]->sock,
-				(struct sockaddr *)&sockpair.sockbuf[SERVER]->sin,
+				sockpair.sockbuf[SockPair::ServerConnection]->sock,
+				(struct sockaddr *)&sockpair.sockbuf[SockPair::ServerConnection]->sin,
 				&size
 			)) {
 				throw "getsockname did not work";
@@ -480,15 +480,15 @@ void ProxyWorker::connectToServer(const int operation) {
 		}
 
 		if (
-			(sockpair.sockbuf[SERVER]->sin.sin_addr.s_addr == srv->intip)
-			&& (sockpair.sockbuf[SERVER]->sin.sin_port == srv->intport)
+			(sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_addr.s_addr == srv->intip)
+			&& (sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_port == srv->intport)
 		) {
 			throw &Proxyerror_Recursion_Detected;
 		}
 		SASIZETYPE sasize = sizeof(struct sockaddr_in);
 		if (0 != getpeername(
-			sockpair.sockbuf[SERVER]->sock,
-			(struct sockaddr *)&sockpair.sockbuf[SERVER]->sin,
+			sockpair.sockbuf[SockPair::ServerConnection]->sock,
+			(struct sockaddr *)&sockpair.sockbuf[SockPair::ServerConnection]->sin,
 			&sasize)
 		) {
 			throw "Get peer name returned non-zero (apparently not good...)";
@@ -514,7 +514,7 @@ bool ProxyWorker::handleIncomingRequest(
 		// Read and filter the request
 		RequestLineFilter requestFilter (
 			sockpair,
-			CLIENT,
+			ClientToServer,
 			ckeepalive,
 			lastRequest,
 			lastRequestOriginal,
@@ -524,15 +524,15 @@ bool ProxyWorker::handleIncomingRequest(
 			// Note here I don't know what it means:
 			//    "(?i)^\\s*Accept-encoding:*$", "Accept-Encoding:\n"
 
-			size_t readSoFar[DIRECTION_MAX];
-			CodeBlock() {
-				DIRECTION whichZero;
+			size_t readSoFar[FlowDirectionMax];
+			{
+				FlowDirection whichZero;
 				ForEachDirection(whichZero)
 					readSoFar[whichZero] = 0;
 			}
 
-			DeadFilter deadServerFilter(sockpair, SERVER);
-			Filter* filter[DIRECTION_MAX] = {
+			DeadFilter deadServerFilter(sockpair, ServerToClient);
+			Filter* filter[FlowDirectionMax] = {
 				&requestFilter,
 				&deadServerFilter
 			};
@@ -570,20 +570,21 @@ bool ProxyWorker::handleIncomingRequest(
 				// can't serve requests for anything not on the same server
 				// using this same socket!
 				ckeepalive = 0; 
-				sockpair.sockbuf[SERVER].reset(new SockBuf);
+				sockpair.sockbuf[SockPair::ServerConnection].reset(new SockBuf);
 				redirected = 0;
-			} else if (ckeepalive && (sockpair.sockbuf[SERVER].get() != NULL)) {
+			} else if (ckeepalive && (sockpair.sockbuf[SockPair::ServerConnection].get() != NULL)) {
 				MYPOLLFD fds;
 
-				fds.fd = sockpair.sockbuf[SERVER]->sock;
+				fds.fd = sockpair.sockbuf[SockPair::ServerConnection]->sock;
 				fds.events = POLLIN;
-				int resPoll = poll(&fds, 1, 0);
-				if (resPoll < 0)
+				int resPoll = poll(&fds, 1, Timeout (0));
+				if (resPoll < 0) {
 					throw "Poll returned negative one.  Hmmm.";
+				}
 
 				if (resPoll > 0) {
 					ckeepalive = 0;
-					sockpair.sockbuf[SERVER].reset(new SockBuf);
+					sockpair.sockbuf[SockPair::ServerConnection].reset(new SockBuf);
 					redirected = 0;
 				}
 			}
@@ -592,7 +593,7 @@ bool ProxyWorker::handleIncomingRequest(
 		// Now read the client header; clientHeaderFilter
 		ClientHeaderFilter clientHeaderFilter(
 			sockpair,
-			CLIENT,
+			ClientToServer,
 			/* ref */ requestOriginalNonConst,
 			isconnect,
 			transparent,
@@ -600,15 +601,15 @@ bool ProxyWorker::handleIncomingRequest(
 			this
 		);
 		{
-			size_t readSoFar[DIRECTION_MAX];
+			size_t readSoFar[FlowDirectionMax];
 			{
-				DIRECTION whichZero;
+				FlowDirection whichZero;
 				ForEachDirection(whichZero)
 					readSoFar[whichZero] = 0;
 			}
 
-			DeadFilter deadServerFilter (sockpair, SERVER);
-			Filter* filter[DIRECTION_MAX] = {
+			DeadFilter deadServerFilter (sockpair, ServerToClient);
+			Filter* filter[FlowDirectionMax] = {
 				&clientHeaderFilter,
 				&deadServerFilter
 			};
@@ -619,7 +620,7 @@ bool ProxyWorker::handleIncomingRequest(
 			);
 		}
 
-		/* BeginSockWatch(sockpair.sockbuf[CLIENT]->sock); */
+		/* BeginSockWatch(sockpair.sockbuf[SockPair::ClientConnection]->sock); */
 
 		bool keepaliveClient = clientHeaderFilter.shouldKeepAlive();
 	
@@ -647,22 +648,22 @@ bool ProxyWorker::handleIncomingRequest(
 			requestFilter.consume();
 			clientHeaderFilter.consume();
 
-			size_t readSoFar[DIRECTION_MAX];
-			CodeBlock() {
-				DIRECTION whichZero;
+			size_t readSoFar[FlowDirectionMax];
+			{
+				FlowDirection whichZero;
 				ForEachDirection(whichZero)
 					readSoFar[whichZero] = 0;
 			}
 
-			PASSTHRU_Filter passServerToClient (
+			PassthruFilter passServerToClient (
 				sockpair,
-				SERVER,
+				ServerToClient,
 				UNKNOWN,
 				Proxyerror_Connection_Established.html
 			);
 
-			PASSTHRU_Filter passClientToServer (sockpair, CLIENT, UNKNOWN);
-			Filter* filter[DIRECTION_MAX] = {
+			PassthruFilter passClientToServer (sockpair, ClientToServer, UNKNOWN);
+			Filter* filter[FlowDirectionMax] = {
 				&passClientToServer,
 				&passServerToClient
 			};
@@ -681,19 +682,19 @@ bool ProxyWorker::handleIncomingRequest(
 		{ 
 			if(requestOriginal.empty() || (redirtype != R_HTTP)) {
 				// BUGBUG: We only filtered requestOriginal.  (?)
-				sockpair.sockbuf[SERVER]->fulfillPlaceholder(
+				sockpair.sockbuf[SockPair::ServerConnection]->fulfillPlaceholder(
 					requestFilter.placeholder,
 					request
 				);
 			} else {
 				redirect = true;
-				sockpair.sockbuf[SERVER]->fulfillPlaceholder(
+				sockpair.sockbuf[SockPair::ServerConnection]->fulfillPlaceholder(
 					requestFilter.placeholder,
 					requestOriginal
 				);
 			}
-			size_t charsSent = sockpair.doUnidirectionalProxy(
-				SERVER,
+			size_t bytesSent = sockpair.doUnidirectionalProxy(
+				ServerToClient,
 				conf.timeouts[STRING_L]
 			);
 		}
@@ -739,29 +740,29 @@ bool ProxyWorker::handleIncomingRequest(
 				// in the MapWithoutFiltering
 
 				clientHeaderFilter.fullfillHeaderString();
-				size_t charsSent = sockpair.doUnidirectionalProxy(
-					SERVER,
+				size_t bytesSent = sockpair.doUnidirectionalProxy(
+					ServerToClient,
 					conf.timeouts[STRING_S]
 				);
 
-				size_t readSoFar[DIRECTION_MAX];
-				CodeBlock() {
-					DIRECTION whichZero;
+				size_t readSoFar[FlowDirectionMax];
+				{
+					FlowDirection whichZero;
 					ForEachDirection(whichZero)
 						readSoFar[whichZero] = 0;
 				}
 
-				PASSTHRU_Filter passServer(sockpair, SERVER, UNKNOWN);
-				PASSTHRU_Filter passClient(sockpair, CLIENT, UNKNOWN);
-				Filter* filter[DIRECTION_MAX] = { &passClient, &passServer };
+				PassthruFilter passServer(sockpair, ServerToClient, UNKNOWN);
+				PassthruFilter passClient(sockpair, ClientToServer, UNKNOWN);
+				Filter* filter[FlowDirectionMax] = { &passClient, &passServer };
 				sockpair.doBidirectionalFilteredProxy(
 					readSoFar,
 					conf.timeouts[CONNECTION_L],
 					filter
 				);
 
-				sockpair.sockbuf[CLIENT]->cleanCheckpoint();
-				sockpair.sockbuf[SERVER]->cleanCheckpoint();
+				sockpair.sockbuf[SockPair::ClientConnection]->cleanCheckpoint();
+				sockpair.sockbuf[SockPair::ServerConnection]->cleanCheckpoint();
 				return true;
 			}
 		}
@@ -769,7 +770,7 @@ bool ProxyWorker::handleIncomingRequest(
 		bool clientChunked = false;
 		PcreDataFilter clientDataFilter (
 			sockpair,
-			CLIENT,
+			ClientToServer,
 			clientHeaderFilter,
 			"the",
 			"Flatworm"
@@ -782,18 +783,18 @@ bool ProxyWorker::handleIncomingRequest(
 				// transfer encoding mode to chunked in HTTP1.1 and above.
 				// We can also strip the length if we so choose.
 
-				DeadFilter deadServerFilter (sockpair, SERVER);
+				DeadFilter deadServerFilter (sockpair, ServerToClient);
 
 				// NOTE: until we change to a chunked mode or something
 				// that doesn't require reading all the client data, the
 				// statements above have already sent the data...
 				// There is no more!
-				Filter* filterData[DIRECTION_MAX];
-				filterData[SERVER] = &deadServerFilter;
-				filterData[CLIENT] = &clientDataFilter;
+				Filter* filterData[FlowDirectionMax];
+				filterData[SockPair::ServerConnection] = &deadServerFilter;
+				filterData[SockPair::ClientConnection] = &clientDataFilter;
 
-				size_t readSoFar[DIRECTION_MAX];
-				DIRECTION which;
+				size_t readSoFar[FlowDirectionMax];
+				FlowDirection which;
 				ForEachDirection(which)
 					readSoFar[which] = 0;
 
@@ -819,27 +820,27 @@ bool ProxyWorker::handleIncomingRequest(
 		// Send the client request, with or without a content length...
 		{ 
 			clientHeaderFilter.fullfillHeaderString();
-			size_t charsSent = sockpair.doUnidirectionalProxy(
-				SERVER,
+			size_t bytesSent = sockpair.doUnidirectionalProxy(
+				ServerToClient,
 				conf.timeouts[STRING_S]
 			);
 		}
 
-		ResponseLineFilter responseFilter (sockpair, SERVER);
+		ResponseLineFilter responseFilter (sockpair, ServerToClient);
 
 		// We want to read the HTTP response, it's just one line.
 		// Followed by key/value pairs
 		{
-			size_t readSoFar[DIRECTION_MAX];
+			size_t readSoFar[FlowDirectionMax];
 			{
-				DIRECTION whichZero;
+				FlowDirection whichZero;
 				ForEachDirection(whichZero)
 					readSoFar[whichZero] = 0;
 			}
 
 			// we actually want to kick in the client data filter here...
-			DeadFilter deadClientFilter (sockpair, CLIENT);
-			Filter* filter[DIRECTION_MAX] = {
+			DeadFilter deadClientFilter (sockpair, ClientToServer);
+			Filter* filter[FlowDirectionMax] = {
 				&deadClientFilter,
 				&responseFilter
 			};
@@ -853,21 +854,21 @@ bool ProxyWorker::handleIncomingRequest(
 		// okay now we have the key value pairs coming up...
 		ServerHeaderFilter serverHeaderFilter (
 			sockpair,
-			SERVER,
+			ServerToClient,
 			isconnect,
 			redirect
 		);
 		{
-			size_t readSoFar[DIRECTION_MAX];
-			CodeBlock() {
-				DIRECTION whichZero;
+			size_t readSoFar[FlowDirectionMax];
+			{
+				FlowDirection whichZero;
 				ForEachDirection(whichZero)
 					readSoFar[whichZero] = 0;
 			}
 
 			// we actually want to kick in the client data filter here...
-			DeadFilter deadClientFilter (sockpair, CLIENT);
-			Filter* filter[DIRECTION_MAX] = {
+			DeadFilter deadClientFilter (sockpair, ClientToServer);
+			Filter* filter[FlowDirectionMax] = {
 				&deadClientFilter,
 				&serverHeaderFilter
 			}; 
@@ -877,7 +878,7 @@ bool ProxyWorker::handleIncomingRequest(
 				filter);
 		}
 
-		/* EndSockWatch(sockpair.sockbuf[CLIENT]->sock); */
+		/* EndSockWatch(sockpair.sockbuf[SockPair::ClientConnection]->sock); */
 
 		int httpStatusCode = responseFilter.httpStatusCode;
 	 	bool authenticate = serverHeaderFilter.authenticate;
@@ -885,7 +886,7 @@ bool ProxyWorker::handleIncomingRequest(
 
 		PcreDataFilter serverDataFilter(
 			sockpair,
-			SERVER,
+			ServerToClient,
 			serverHeaderFilter,
 			"the",
 			"Flatworm"
@@ -912,24 +913,24 @@ bool ProxyWorker::handleIncomingRequest(
 				&& (httpStatusCode != 204)
 				&& (httpStatusCode != 304)
 			) {
-				size_t readSoFar[DIRECTION_MAX];
+				size_t readSoFar[FlowDirectionMax];
 				{
-					DIRECTION whichZero;
+					FlowDirection whichZero;
 					ForEachDirection(whichZero)
 						readSoFar[whichZero] = 0;
 				}
 
-				DeadFilter deadServerFilter (sockpair, SERVER);
-				DeadFilter deadClientFilter (sockpair, CLIENT);
+				DeadFilter deadServerFilter (sockpair, ServerToClient);
+				DeadFilter deadClientFilter (sockpair, ClientToServer);
 
 				// NOTE: until we change to a chunked mode or something that
 				// doesn't require reading all the client data, the statements
 				// above have already sent the data-- there is no more!
-				Filter* filterData[DIRECTION_MAX];
+				Filter* filterData[FlowDirectionMax];
 				if (serverDataFilter.getContentLengthFiltered().isKnown()) {
-					filterData[SERVER] = &serverDataFilter;
+					filterData[SockPair::ServerConnection] = &serverDataFilter;
 				} else {
-					filterData[SERVER] = &deadServerFilter;
+					filterData[SockPair::ServerConnection] = &deadServerFilter;
 				}
 
 				// Server wouldn't respond until we sent the client header.
@@ -939,11 +940,11 @@ bool ProxyWorker::handleIncomingRequest(
 				if (clientDataFilter.getContentLengthFiltered().isUnknown()) {
 					// can't do this until we have filter pre-empting of 
 					// some kind.  will wait indefinitely on a keep alive conn.
-					/* filterData[CLIENT] = &clientDataFilter; */
+					/* filterData[SockPair::ClientConnection] = &clientDataFilter; */
 
-					filterData[CLIENT] = &deadClientFilter;
+					filterData[SockPair::ClientConnection] = &deadClientFilter;
 				} else {
-					filterData[CLIENT] = &deadClientFilter;
+					filterData[SockPair::ClientConnection] = &deadClientFilter;
 				}
 
 				// only read the client data here if we didn't already.
@@ -956,7 +957,7 @@ bool ProxyWorker::handleIncomingRequest(
 
 				if (serverDataFilter.getContentLengthFiltered().isKnown()) {
 					Assert(
-						readSoFar[SERVER]
+						readSoFar[SockPair::ServerConnection]
 						== serverDataFilter.getContentLengthFiltered().getKnownValue()
 					);
 				}
@@ -1049,23 +1050,23 @@ bool ProxyWorker::handleIncomingRequest(
 			|| (httpStatusCode == 304)
 			|| (operation == HTTP_HEAD)
 		) {
-			size_t readSoFar[DIRECTION_MAX];
-			CodeBlock() {
-				DIRECTION whichZero;
+			size_t readSoFar[FlowDirectionMax];
+			{
+				FlowDirection whichZero;
 				ForEachDirection(whichZero)
 					readSoFar[whichZero] = 0;
 			}
 
 			// no more to read, don't try.  a kept alive connection would then
 			// block indefinitely!
-			DeadFilter deadServerFilter (sockpair, SERVER);
+			DeadFilter deadServerFilter (sockpair, ServerToClient);
 
 			// I thought GET could have client data.  But on a keep alive
 			// connection, I got subsequent GETs with naught but a line feed
-			/* PASSTHRU_Filter passClient (sockpair, CLIENT, UNKNOWN); */ 
-			DeadFilter deadClientFilter (sockpair, CLIENT);
+			/* PassthruFilter passClient (sockpair, ClientToServer, UNKNOWN); */ 
+			DeadFilter deadClientFilter (sockpair, ClientToServer);
 
-			Filter* filter[DIRECTION_MAX] = {
+			Filter* filter[FlowDirectionMax] = {
 				/* passClient */ &deadClientFilter,
 				&deadServerFilter
 			};
@@ -1082,18 +1083,18 @@ bool ProxyWorker::handleIncomingRequest(
 		// Now if we have chunking to take care of we will
 		{
 			if (!serverDataFilter.getContentLengthFiltered().isKnown()) {
-				size_t readSoFar[DIRECTION_MAX];
-				CodeBlock() {
-					DIRECTION whichZero;
+				size_t readSoFar[FlowDirectionMax];
+				{
+					FlowDirection whichZero;
 					ForEachDirection(whichZero)
 						readSoFar[whichZero] = 0;
 				}
 
-				DeadFilter deadClientFilter (sockpair, CLIENT);
-				Filter* filter[DIRECTION_MAX];
+				DeadFilter deadClientFilter (sockpair, ClientToServer);
+				Filter* filter[FlowDirectionMax];
 				// we actually want to kick in the client data filter here...
-				filter[SERVER] = &serverDataFilter;
-				filter[CLIENT] = &deadClientFilter;
+				filter[SockPair::ServerConnection] = &serverDataFilter;
+				filter[SockPair::ClientConnection] = &deadClientFilter;
 				sockpair.doBidirectionalFilteredProxy(
 					readSoFar,
 					conf.timeouts[CONNECTION_L],
@@ -1104,12 +1105,12 @@ bool ProxyWorker::handleIncomingRequest(
 
 		// only necessary if we filled a placeholder and didn't map and filter?
 		{
-			size_t charsSentClient = sockpair.doUnidirectionalProxy(
-				CLIENT,
+			size_t bytesSentClient = sockpair.doUnidirectionalProxy(
+				ClientToServer,
 				conf.timeouts[STRING_S]
 			);  
-			size_t charsSentServer = sockpair.doUnidirectionalProxy(
-				SERVER,
+			size_t bytesSentServer = sockpair.doUnidirectionalProxy(
+				ServerToClient,
 				conf.timeouts[STRING_S]
 			);
 		}
@@ -1120,9 +1121,9 @@ bool ProxyWorker::handleIncomingRequest(
 		// string error.  improve feedback, wrap as a bug report?
 		// "Click here to report bug"
 
-		/* EndSockWatch(sockpair.sockbuf[CLIENT]->sock); */
+		/* EndSockWatch(sockpair.sockbuf[SockPair::ClientConnection]->sock); */
 
-		sockpair.sockbuf[CLIENT]->failureShutdown(str, conf.timeouts[STRING_S]);
+		sockpair.sockbuf[SockPair::ClientConnection]->failureShutdown(str, conf.timeouts[STRING_S]);
 		std::cout << "Exception thrown during [" << requestOriginalNonConst
 			<< ": " << str << "\n";
 		return false;
@@ -1131,11 +1132,11 @@ bool ProxyWorker::handleIncomingRequest(
 
 		// Handling similar to this was in the original 3Proxy.
 		// Not sure what it was for (??)
-		/* if (sockpair.sockbuf[CLIENT].get() != NULL) {
+		/* if (sockpair.sockbuf[SockPair::ClientConnection].get() != NULL) {
 			if ((this->res>=509 && this->res < 517) || (this->res > 900)) {
 				int vvv;
 				do {
-					vvv = this->sockpair.sockbuf[CLIENT]->GetLineUnfiltered(
+					vvv = this->sockpair.sockbuf[SockPair::ClientConnection]->GetLineUnfiltered(
 						buffer,
 						BUFSIZE - 1,
 						'\n',
@@ -1145,7 +1146,7 @@ bool ProxyWorker::handleIncomingRequest(
 			}
 		}*/
 
-		sockpair.sockbuf[CLIENT]->failureShutdown(
+		sockpair.sockbuf[SockPair::ClientConnection]->failureShutdown(
 			proxyerror->html,
 			conf.timeouts[STRING_S]
 		);
@@ -1164,8 +1165,8 @@ ProxyWorker::~ProxyWorker() {
 	// further makes it seem like it may be the right class to consider
 	// "the" proxying object...
 
-	if (this->sockpair.sockbuf[SERVER]->sock != INVALID_SOCKET) {
-		this->sockpair.sockbuf[SERVER].reset();
+	if (this->sockpair.sockbuf[SockPair::ServerConnection]->sock != INVALID_SOCKET) {
+		this->sockpair.sockbuf[SockPair::ServerConnection].reset();
 	}
 
 	if (this->srv) {
@@ -1184,8 +1185,8 @@ ProxyWorker::~ProxyWorker() {
 
 	if (
 		(this->ctrlsock != INVALID_SOCKET)
-		&& (this->sockpair.sockbuf[CLIENT].get() != NULL)
-		&& (this->ctrlsock != this->sockpair.sockbuf[CLIENT]->sock)
+		&& (this->sockpair.sockbuf[SockPair::ClientConnection].get() != NULL)
+		&& (this->ctrlsock != this->sockpair.sockbuf[SockPair::ClientConnection]->sock)
 	) {
 		shutdown(this->ctrlsock, SHUT_RDWR);
 		closesocket(this->ctrlsock);

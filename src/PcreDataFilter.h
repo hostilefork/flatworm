@@ -25,7 +25,7 @@ protected:
 public:
 	PcreDataFilter(
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		const HeaderFilter& filterHeaderServer,
 		const std::string regularExpression,
 		const std::string replaceString

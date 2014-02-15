@@ -19,15 +19,15 @@
 // Also serves as debug hook to watch what we are putting on the wire.
 //
 
-int socksend(SOCKET sock, const char * buf, int bufsize, const TIMEOUT to) {
+int socksend(SOCKET sock, const char * buf, int bufsize, const Timeout timeout) {
 	int sent = 0;
 
 	do {
-		CodeBlock() {
+		{
 			MYPOLLFD fds;
 			fds.fd = sock;
 			fds.events = POLLOUT;
-			int pollRes = poll(&fds, 1, to.GetMilliseconds());
+			int pollRes = poll(&fds, 1, timeout);
 			int errorno = WSAGetLastError();
 			if	(pollRes < 0 && (errorno == EAGAIN || errorno == EINTR))
 				continue;
@@ -53,10 +53,13 @@ int socksend(SOCKET sock, const char * buf, int bufsize, const TIMEOUT to) {
 	return sent;
 }
 
+
 int socksendto(
-	SOCKET sock, struct sockaddr_in * sin,
-	const char * buf, int bufsize,
-	const TIMEOUT to
+	SOCKET sock,
+	struct sockaddr_in * sin,
+	const char * buf,
+	int bufsize,
+	const Timeout timeout
 ) {
 	int sent = 0;
  
@@ -65,7 +68,7 @@ int socksendto(
 		fds.fd = sock;
 		fds.events = POLLOUT;
 
-		int pollRes = poll(&fds, 1, to.GetMilliseconds());
+		int pollRes = poll(&fds, 1, timeout);
 		int errorno = WSAGetLastError();
 		if(pollRes < 0 && (errorno == EAGAIN || errorno == EINTR))
 			continue;
@@ -83,7 +86,7 @@ int socksendto(
 
 		if(sendToRes < 0) {
 			int errorno = WSAGetLastError();
-			if(errorno ==  EAGAIN)
+			if(errorno == EAGAIN)
 				continue;
 
 			return sendToRes;
@@ -94,18 +97,19 @@ int socksendto(
 	return sent;
 }
 
+
 int sockrecvfrom(
 	SOCKET sock,
 	struct sockaddr_in * sin,
 	char * buf,
 	int bufsize,
-	const TIMEOUT to
+	const Timeout timeout
 ) {
 	MYPOLLFD fds;
 	fds.fd = sock;
 	fds.events = POLLIN;
 
-	if (poll(&fds, 1, to.GetMilliseconds()) <1 )
+	if (poll(&fds, 1, timeout) < 1 )
 		return 0;
 
 	SASIZETYPE sasize = sizeof(struct sockaddr_in);
@@ -124,34 +128,61 @@ int sockrecvfrom(
 	return res;
 }
 
-inline int mypoll(MYPOLLFD *fds, unsigned int nfds, int timeout){
+
+inline int mypoll(MYPOLLFD *fds, unsigned int nfds, Timeout timeout){
+
 	fd_set readfd;
+	FD_ZERO(&readfd);
+
 	fd_set writefd;
+	FD_ZERO(&writefd);
+
 	fd_set oobfd;
-	struct timeval tv;
-	unsigned i;
-	int num;
+	FD_ZERO(&oobfd);
+
 	SOCKET maxfd = 0;
 
-	tv.tv_sec = timeout/1000;
-	tv.tv_usec = (timeout%1000)*1000;
-	FD_ZERO(&readfd);
-	FD_ZERO(&writefd);
-	FD_ZERO(&oobfd);
-	for(i=0; i < nfds; i++){
-		if((fds[i].events&POLLIN))FD_SET(fds[i].fd, &readfd);
-		if((fds[i].events&POLLOUT))FD_SET(fds[i].fd, &writefd);
-		if((fds[i].events&POLLPRI))FD_SET(fds[i].fd, &oobfd);
+	for (unsigned int i = 0; i < nfds; i++) {
+		if (fds[i].events & POLLIN) {
+			FD_SET(fds[i].fd, &readfd);
+		}
+
+		if (fds[i].events & POLLOUT) {
+			FD_SET(fds[i].fd, &writefd);
+		}
+
+		if (fds[i].events & POLLPRI) {
+			FD_SET(fds[i].fd, &oobfd);
+		}
+
 		fds[i].revents = 0;
-		if(fds[i].fd > maxfd) maxfd = fds[i].fd;
+		if (fds[i].fd > maxfd) {
+			maxfd = fds[i].fd;
+		}
 	}
-	if ((num = select(((int)(maxfd))+1, &readfd, &writefd, &oobfd, &tv)) < 1) {
+
+	struct timeval tv;
+	tv.tv_sec = timeout.getSeconds();
+	tv.tv_usec = timeout.getMilliseconds() - (timeout.getSeconds() * 1000);
+
+	int num = select(((int)(maxfd)) + 1, &readfd, &writefd, &oobfd, &tv);
+	if (num < 1) {
 		return num;
 	}
-	for (i=0; i<nfds; i++){
-		if(FD_ISSET(fds[i].fd, &readfd)) fds[i].revents |= POLLIN;
-		if(FD_ISSET(fds[i].fd, &writefd)) fds[i].revents |= POLLOUT;
-		if(FD_ISSET(fds[i].fd, &oobfd)) fds[i].revents |= POLLPRI;
+
+	for (unsigned int i = 0; i < nfds; i++) {
+		if (FD_ISSET(fds[i].fd, &readfd)) {
+			fds[i].revents |= POLLIN;
+		}
+
+		if (FD_ISSET(fds[i].fd, &writefd)) {
+			fds[i].revents |= POLLOUT;
+		}
+
+		if (FD_ISSET(fds[i].fd, &oobfd)) {
+			fds[i].revents |= POLLPRI;
+		}
 	}
+
 	return num;
 }

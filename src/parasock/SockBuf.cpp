@@ -26,7 +26,7 @@ void SockBuf::shutdownAndClose() {
 }
 
 
-void SockBuf::failureShutdown(const std::string message, TIMEOUT timeout) {
+void SockBuf::failureShutdown(const std::string message, Timeout timeout) {
 	// failure, possibly send a message, don't trigger assertions
 
 	if (this->sock != INVALID_SOCKET) {
@@ -37,7 +37,7 @@ void SockBuf::failureShutdown(const std::string message, TIMEOUT timeout) {
 				&this->sin,
 				message.c_str(),
 				static_cast<int>(message.length()),
-				timeout.GetMilliseconds()
+				timeout
 			);
 		}
 		shutdownAndClose();

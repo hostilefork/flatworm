@@ -11,7 +11,7 @@
 
 DataFilter::DataFilter (
 	SockPair& sockpair,
-	const DIRECTION whichInput,
+	const FlowDirection whichInput,
 	const HeaderFilter& filterHeader
 ) :
 	Filter (sockpair, whichInput),
@@ -347,7 +347,7 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 
 		Assert(chunkSize.isKnown());
 		chunkString += uncommittedBytes;
-		CodeBlock() {
+		{
 			// new test... can we read EXACT bytes?
 			Assert(uncommittedBytes.length() == chunkSize.getKnownValue());
 			instruction = std::auto_ptr<Instruction>(

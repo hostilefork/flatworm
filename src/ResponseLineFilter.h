@@ -23,7 +23,7 @@ public:
 	int httpStatusCode; 
 
 public:
-	ResponseLineFilter (SockPair& sockpair, const DIRECTION whichInput) : 
+	ResponseLineFilter (SockPair& sockpair, const FlowDirection whichInput) : 
 		OneLineFilter (sockpair, whichInput),
 		httpStatusCode (0)
 	{

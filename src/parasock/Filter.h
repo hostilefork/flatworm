@@ -115,7 +115,7 @@ public:
 	size_t exactByteCount;
 
 public:
-	BytesExactInstruction(const size_t bytesRead, const size_t commitSize) :
+	BytesExactInstruction(const size_t exactByteCount, const size_t commitSize) :
 		Instruction (Instruction::BytesExact, commitSize),
 		exactByteCount (exactByteCount)
 	{
@@ -154,7 +154,7 @@ private:
 	std::string bytesRead; // DEBUG
 
 public:
-	Filter(SockPair& sockpair, const DIRECTION whichInput);
+	Filter(SockPair& sockpair, const FlowDirection whichInput);
 
 protected:
 	const Instruction* currentInstruction() {

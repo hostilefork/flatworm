@@ -30,7 +30,7 @@ private:
 public:
 	HeaderFilter (
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		bool isconnect
 	) :
 		Filter (sockpair, whichInput),

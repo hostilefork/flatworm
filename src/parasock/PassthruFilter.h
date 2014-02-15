@@ -12,15 +12,15 @@
 
 #include "Filter.h"
 
-class PASSTHRU_Filter : public Filter {
+class PassthruFilter : public Filter {
 private:
 	Knowable<size_t> totalSize;
 	const std::string sendFirst;
 
 public:
-	PASSTHRU_Filter (
+	PassthruFilter (
 		SockPair& sockpair,
-		const DIRECTION whichInput,
+		const FlowDirection whichInput,
 		Knowable<size_t> totalSize = UNKNOWN,
 		const std::string sendFirst = ""
 	) : 
@@ -87,7 +87,7 @@ public:
 		return instruction;
 	}
 
-	~PASSTHRU_Filter() /* override */ {
+	~PassthruFilter() /* override */ {
 	}
 };
 

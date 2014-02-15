@@ -33,7 +33,7 @@ void EndSockWatch(SOCKET sock) {
 // Lazy right now, most defines in the header, couldn't do these that way
 // because of forward declaration...
 
-Filter::Filter(SockPair& sockpair, const DIRECTION whichInput) : 
+Filter::Filter(SockPair& sockpair, const FlowDirection whichInput) : 
 	lastReadSoFar (UNKNOWN),
 	sockbufInput (*sockpair.sockbuf[whichInput]),
 	sockbufOutput (*sockpair.sockbuf[OtherDirection(whichInput)]),
