@@ -108,7 +108,7 @@
     <ClInclude Include="src\parasock\SockBuf.h">
       <Filter>Header Files\parasock</Filter>
     </ClInclude>
-    <ClInclude Include="src\parasock\SockPair.h">
+    <ClInclude Include="src\parasock\Parasock.h">
       <Filter>Header Files\parasock</Filter>
     </ClInclude>
   </ItemGroup>
@@ -194,13 +194,13 @@
     <ClCompile Include="src\pcre\pcreposix.c">
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
-    <ClCompile Include="src\parasock\SockPair.cpp">
-      <Filter>Source Files\parasock</Filter>
-    </ClCompile>
     <ClCompile Include="src\parasock\Filter.cpp">
       <Filter>Source Files\parasock</Filter>
     </ClCompile>
     <ClCompile Include="src\parasock\NetUtils.cpp">
+      <Filter>Source Files\parasock</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parasock\Parasock.cpp">
       <Filter>Source Files\parasock</Filter>
     </ClCompile>
     <ClCompile Include="src\parasock\SockBuf.cpp">

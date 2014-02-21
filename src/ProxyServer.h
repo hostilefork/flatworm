@@ -5,8 +5,8 @@
 // basically just left alone as what was proxy.h
 //
 
-#ifndef __PROXYSERVER_H__
-#define __PROXYSERVER_H__
+#ifndef __FLATWORM_PROXYSERVER_H__
+#define __FLATWORM_PROXYSERVER_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,9 +124,9 @@ typedef enum {
 struct ProxyWorker;
 struct SRVPARAM;
 
-typedef void (*LOGFUNC)(ProxyWorker * proxy, const char *);
+typedef void (*LOGFUNC)(ProxyWorker * proxy, char const *);
 typedef void * (*REDIRECTFUNC)(ProxyWorker * proxy);
-typedef unsigned long (*RESOLVFUNC)(const char *);
+typedef unsigned long (*RESOLVFUNC)(char const *);
 typedef void * (*PTHREADFUNC)(void *);
 
 
@@ -303,14 +303,14 @@ public:
 
 
 struct ProxyWorker {
-	ProxyWorker* next;
-	ProxyWorker* prev;
+	ProxyWorker * next;
+	ProxyWorker * prev;
 	SRVPARAM *srv;
 	REDIRECTFUNC redirectfunc;
 
 	ProxyWorkerSERVICE service;
 
-	SockPair sockpair;
+	Parasock parasock;
 
 	SOCKET ctrlsock;
 
@@ -343,7 +343,7 @@ public:
 	ProxyWorker();
 
 	// review how initialization of defaults is done here
-	ProxyWorker(const ProxyWorker* other);
+	ProxyWorker(ProxyWorker const * other);
 
 private:
 	void connectToServer(const int operation);
@@ -352,15 +352,15 @@ public:
 	// When this is called, requisite information must already be established
 	// (e.g. client socket)
 	bool handleIncomingRequest(
-		std::string& requestNonConst,
-		std::string& requestOriginalNonConst,
+		std::string &requestNonConst,
+		std::string &requestOriginalNonConst,
 		unsigned& ckeepalive,
 		size_t& prefix,
-		bool& isconnect,
-		bool& transparent,
-		bool& redirect,
-		const std::string lastRequest,
-		const std::string lastRequestOriginal
+		bool & isconnect,
+		bool & transparent,
+		bool & redirect,
+		std::string const lastRequest,
+		std::string const lastRequestOriginal
 	); 
 	virtual ~ProxyWorker();
 };
@@ -374,7 +374,7 @@ extern EXTPARAM conf;
 
 
 extern FILE * stdlog;
-void logstdout(ProxyWorker * proxy, const char *s);
+void logstdout(ProxyWorker * proxy, char const *s);
 
 int nbnameauth(ProxyWorker * proxy);
 int alwaysauth(ProxyWorker * proxy);
@@ -384,10 +384,10 @@ int strongauth(ProxyWorker * proxy);
 void trafcountfunc(ProxyWorker *param);
 
 
-int scanaddr(const char *s, unsigned long * ip, unsigned long * mask);
+int scanaddr(char const *s, unsigned long * ip, unsigned long * mask);
 int myinet_ntoa(struct in_addr in, char * buf);
 extern unsigned long nservers[MAXNSERVERS];
-unsigned long getip(const char *name);
+unsigned long getip(char const *name);
 unsigned long myresolver(char *);
 unsigned long fakeresolver (char *name);
 int initdnshashtable(unsigned nhashsize);
@@ -395,18 +395,18 @@ int initdnshashtable(unsigned nhashsize);
 int reload (void);
 extern int paused;
 
-char * mycrypt(const char *key, const char *salt, char *buf);
-char * ntpwdhash (char *szHash, const char *szPassword, int tohex);
+char * mycrypt(char const *key, char const *salt, char *buf);
+char * ntpwdhash (char *szHash, char const *szPassword, int tohex);
 
 struct hashtable;
 void hashadd(
-	struct hashtable *ht, const char* name, unsigned long value, time_t expires
+	struct hashtable *ht, char const* name, unsigned long value, time_t expires
 );
 
-int parsehostname(const std::string hostname, ProxyWorker *param, unsigned short port);
-int parseusername(const  std::string username, ProxyWorker *param, int extpasswd);
+int parsehostname(std::string const hostname, ProxyWorker *param, unsigned short port);
+int parseusername(const  std::string & username, ProxyWorker *param, int extpasswd);
 int parseconnusername(
-	const std::string username, ProxyWorker *param, int extpasswd, unsigned short port
+	std::string const & username, ProxyWorker *param, int extpasswd, unsigned short port
 );
 
 void freeconf(EXTPARAM *confp);
@@ -417,7 +417,7 @@ void * proxychild(ProxyWorker * proxy);
 
 extern struct hashtable dns_table;
 
-inline void debugInfoDetail(const char* message) {
+inline void debugInfoDetail(char const* message) {
 #if DEBUGLEVEL > 2
 	(*param->srv->logfunc)(param, message);
 #endif

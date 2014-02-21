@@ -5,31 +5,31 @@
 // buffering it.
 //
 
-#ifndef __CLIENTHEADERFILTER_H__
-#define __CLIENTHEADERFILTER_H__
+#ifndef __FLATWORM_CLIENTHEADERFILTER_H__
+#define __FLATWORM_CLIENTHEADERFILTER_H__
 
 #include "parasock/Filter.h"
 #include "HeaderFilter.h"
 
 class ClientHeaderFilter : public HeaderFilter {
 public:
-	std::string& requestOriginal;
+	std::string & requestOriginal;
 	bool isconnect;
 	bool transparent;
-	const unsigned ckeepalive;
-	ProxyWorker* proxy;
+	unsigned ckeepalive;
+	ProxyWorker * proxy;
 	
 public:
 	ClientHeaderFilter (
-		SockPair& sockpair,
-		const FlowDirection whichInput,
-		std::string& requestOriginal,
+		Parasock & parasock,
+		FlowDirection whichInput,
+		std::string & requestOriginal,
 		bool isconnect,
 		bool transparent,
-		const unsigned ckeepalive,
-		ProxyWorker* proxy
+		unsigned ckeepalive,
+		ProxyWorker * proxy
 	) :
-		HeaderFilter (sockpair, whichInput, isconnect),
+		HeaderFilter (parasock, whichInput, isconnect),
 		requestOriginal (requestOriginal), 
 		isconnect (isconnect), 
 		transparent (transparent),
@@ -39,15 +39,15 @@ public:
 	}
 
 	void processHeaderLine(
-		std::string& header,
-		const std::string key,
-		const std::string value
+		std::string & header,
+		std::string const key,
+		std::string const value
 	) /* override */ {
 		size_t sb = 0;
-		if(transparent && !strncasecmplen(key, "Host")) {
+		if (transparent && !strncasecmplen(key, "Host")) {
 
 			size_t se = value.find('\r', sb);
-			if(!ckeepalive) {
+			if (!ckeepalive) {
 				std::string sq = value.substr(0, se);
 				parsehostname(sq, proxy, 80);
 			}

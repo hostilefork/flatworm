@@ -9,15 +9,15 @@
 // coding.  A work in progress, obviously.
 //
 
-#ifndef __REQUESTLINEFILTER_H__
-#define __REQUESTLINEFILTER_H__
+#ifndef __FLATWORM_REQUESTLINEFILTER_H__
+#define __FLATWORM_REQUESTLINEFILTER_H__
 
 #include "OneLineFilter.h"
 
 //
 // REVIEW: is it necessary to modify input?  The original code did.
 //
-inline void decodeurl(std::string& input, int allowcr) {
+inline void decodeurl(std::string & input, int allowcr) {
 	size_t s = 0;
 	size_t d = 0;
 	unsigned u;
@@ -30,7 +30,7 @@ inline void decodeurl(std::string& input, int allowcr) {
 			&& ishex(input[s+2])
 		) {
 			sscanf(input.c_str() + s + 1, "%2x", &u);
-			if(allowcr && u != '\r') {
+			if (allowcr && u != '\r') {
 				input[d++] = u;
 			} else if (u != '\r' && u != '\n') {
 				if (u == '\"' || u == '\\') {
@@ -44,7 +44,7 @@ inline void decodeurl(std::string& input, int allowcr) {
 		}
 		else if (!allowcr && (input[s] == '?')) {
 			break;
-		} else if(input[s] == '+') {
+		} else if (input[s] == '+') {
 			input[d++] = ' ';
 			s++;
 		}
@@ -69,20 +69,20 @@ public:
 	bool transparent;
 	bool redirect; 
 	unsigned& ckeepalive;
-	const std::string lastRequest;
-	const std::string lastRequestOriginal;
-	ProxyWorker *proxy;
+	std::string const lastRequest;
+	std::string const lastRequestOriginal;
+	ProxyWorker * proxy;
 
 public:
 	RequestLineFilter (
-		SockPair& sockpair,
-		const FlowDirection whichInput,
+		Parasock & parasock,
+		FlowDirection whichInput,
 		unsigned& ckeepalive,
-		const std::string lastRequest,
-		const std::string lastRequestOriginal,
-		ProxyWorker* proxy
+		std::string const lastRequest,
+		std::string const lastRequestOriginal,
+		ProxyWorker * proxy
 	) :
-		OneLineFilter (sockpair, whichInput),
+		OneLineFilter (parasock, whichInput),
 		ckeepalive (ckeepalive),
 		lastRequest (lastRequest),
 		lastRequestOriginal (lastRequestOriginal),
@@ -99,7 +99,7 @@ public:
 		fulfillPlaceholder(placeholder, "");
 	}
 
-	void processTheLine(const std::string& line) /* override */
+	void processTheLine(std::string const & line) /* override */
 	{
 		request = line;
 		requestOriginal = line;
@@ -120,7 +120,7 @@ public:
 		if (!isconnect) {
 			if (!strncasecmplen(request, "http://", sb, &sb)) {
 				// nothing, just increment sb?
-			} else if(request[sb] == '/') {
+			} else if (request[sb] == '/') {
 				transparent = true;
 			} else {
 				throw "Not an http address in request, we only do http.";

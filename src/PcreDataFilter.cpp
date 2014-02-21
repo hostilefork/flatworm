@@ -23,20 +23,20 @@ time_t basetime = 0;
 #endif
 
 PcreDataFilter::PcreDataFilter (
-	SockPair& sockpair,
-	const FlowDirection whichInput,
-	const HeaderFilter& filterHeaderServer,
-	const std::string regularExpression,
-	const std::string replaceString
+	Parasock & parasock,
+	FlowDirection whichInput,
+	HeaderFilter const & headerFilterServer,
+	std::string const regularExpression,
+	std::string const replaceString
 ) :
-	DataFilter (sockpair, whichInput, filterHeaderServer),
+	DataFilter (parasock, whichInput, headerFilterServer),
 	replace (replaceString)
 {
 	pcre *re = NULL;
 
 	int offset = 4;	
 	{
-		const char * errptr;
+		char const * errptr;
 		this->re = pcre_compile(
 			regularExpression.c_str(),
 			0 /* pcre_options */,
@@ -51,7 +51,7 @@ PcreDataFilter::PcreDataFilter (
 }
 
 
-void PcreDataFilter::filterBuffer(std::string& buf){
+void PcreDataFilter::filterBuffer(std::string & buf){
 
 	int ovector[48];
 	int count = 0;
@@ -60,7 +60,7 @@ void PcreDataFilter::filterBuffer(std::string& buf){
 	std::string replace;
 	int nreplaces=0;
 
-	if(!this->re) {
+	if (!this->re) {
 		throw "No regular expression supplied in filterBuffer";
 	}
 
@@ -99,7 +99,7 @@ void PcreDataFilter::filterBuffer(std::string& buf){
 				) {
 					it++;
 					std::string::iterator itFirst = it;
-					while((it != replace.end()) && isnumber(*it)) {
+					while ((it != replace.end()) && isnumber(*it)) {
 						it++;
 					}
 					std::string numString(itFirst,it);
@@ -188,9 +188,9 @@ std::auto_ptr<Instruction> PcreDataFilter::firstInstructionSubCore() {
 
 
 std::auto_ptr<Instruction> PcreDataFilter::runSubCore(
-	const std::string& uncommittedBytes,
-	const size_t newDataOffset,
-	const size_t readSoFar,
+	std::string const & uncommittedBytes,
+	size_t newDataOffset,
+	size_t readSoFar,
 	bool disconnected
 ) {
 

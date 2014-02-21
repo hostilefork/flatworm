@@ -13,8 +13,8 @@
 
 class DeadFilter : public Filter {
 public:
-	DeadFilter (SockPair& sockpair, const FlowDirection whichInput) : 
-		Filter (sockpair, whichInput)
+	DeadFilter (Parasock & parasock, FlowDirection whichInput) : 
+		Filter (parasock, whichInput)
 	{
 	}
 
@@ -23,9 +23,9 @@ public:
 	}
 
 	std::auto_ptr<Instruction> runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) /* override */ {
 		NotReached();

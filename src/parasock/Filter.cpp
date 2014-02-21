@@ -33,17 +33,17 @@ void EndSockWatch(SOCKET sock) {
 // Lazy right now, most defines in the header, couldn't do these that way
 // because of forward declaration...
 
-Filter::Filter(SockPair& sockpair, const FlowDirection whichInput) : 
+Filter::Filter(Parasock & parasock, FlowDirection whichInput) : 
 	lastReadSoFar (UNKNOWN),
-	sockbufInput (*sockpair.sockbuf[whichInput]),
-	sockbufOutput (*sockpair.sockbuf[OtherDirection(whichInput)]),
+	sockbufInput (*parasock.sockbuf[whichInput]),
+	sockbufOutput (*parasock.sockbuf[OtherDirection(whichInput)]),
 	running (false)
 {
 	uncommittedChars = 0;
 }
 
 
-void Filter::outputString(const std::string sendMe) {
+void Filter::outputString(std::string const sendMe) {
 	sockbufOutput.outputString(sendMe);
 }
 
@@ -55,7 +55,7 @@ std::auto_ptr<Placeholder> Filter::outputPlaceholder() {
 
 void Filter::fulfillPlaceholder(
 	std::auto_ptr<Placeholder> placeholder,
-	const std::string contents
+	std::string const contents
 ) {
 	sockbufOutput.fulfillPlaceholder(placeholder, contents);
 }

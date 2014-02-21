@@ -7,8 +7,8 @@
 // Maybe silly to have this in its own class... but, why not?
 //
 
-#ifndef __RESPONSELINEFILTER__
-#define __RESPONSELINEFILTER__
+#ifndef __FLATWORM_RESPONSELINEFILTER_H__
+#define __FLATWORM_RESPONSELINEFILTER_H__
 
 #include "parasock/Filter.h"
 #include "OneLineFilter.h"
@@ -23,13 +23,13 @@ public:
 	int httpStatusCode; 
 
 public:
-	ResponseLineFilter (SockPair& sockpair, const FlowDirection whichInput) : 
-		OneLineFilter (sockpair, whichInput),
+	ResponseLineFilter (Parasock & parasock, FlowDirection whichInput) : 
+		OneLineFilter (parasock, whichInput),
 		httpStatusCode (0)
 	{
 	}
 
-	void processTheLine(const std::string& line) /* override */
+	void processTheLine(std::string const & line) /* override */
 	{
 		if (line.length() <= 9) {
 			throw "Too few chars in response for HTTP version and code.";

@@ -129,7 +129,7 @@ static const int eint[] = {
 
 /* Table of texts corresponding to POSIX error codes */
 
-static const char *const pstring[] = {
+static char const *const pstring[] = {
   "",                                /* Dummy for value 0 */
   "internal error",                  /* REG_ASSERT */
   "invalid repeat counts in {}",     /* BADBR      */
@@ -160,7 +160,7 @@ static const char *const pstring[] = {
 PCREPOSIX_EXP_DEFN size_t
 regerror(int errcode, const regex_t *preg, char *errbuf, size_t errbuf_size)
 {
-const char *message, *addmessage;
+char const *message, *addmessage;
 size_t length, addlength;
 
 message = (errcode >= (int)(sizeof(pstring)/sizeof(char *)))?
@@ -216,9 +216,9 @@ Returns:      0 on success
 */
 
 PCREPOSIX_EXP_DEFN int
-regcomp(regex_t *preg, const char *pattern, int cflags)
+regcomp(regex_t *preg, char const *pattern, int cflags)
 {
-const char *errorptr;
+char const *errorptr;
 int erroffset;
 int errorcode;
 int options = 0;
@@ -258,7 +258,7 @@ be set. When this is the case, the nmatch and pmatch arguments are ignored, and
 the only result is yes/no/error. */
 
 PCREPOSIX_EXP_DEFN int
-regexec(const regex_t *preg, const char *string, size_t nmatch,
+regexec(const regex_t *preg, char const *string, size_t nmatch,
   regmatch_t pmatch[], int eflags)
 {
 int rc;

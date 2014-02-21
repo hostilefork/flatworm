@@ -26,7 +26,7 @@ void SockBuf::shutdownAndClose() {
 }
 
 
-void SockBuf::failureShutdown(const std::string message, Timeout timeout) {
+void SockBuf::failureShutdown(std::string const message, Timeout timeout) {
 	// failure, possibly send a message, don't trigger assertions
 
 	if (this->sock != INVALID_SOCKET) {
@@ -66,7 +66,7 @@ SockBuf::SockBuf() {
 
 
 SockBuf::~SockBuf() {
-	if(this->sock != INVALID_SOCKET) {
+	if (this->sock != INVALID_SOCKET) {
 		shutdownAndClose();
 	}
 	this->sin.sin_addr.s_addr = 0;

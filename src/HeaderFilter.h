@@ -9,8 +9,8 @@
 // both filters...
 //
 
-#ifndef __HEADERFILTER_H__
-#define __HEADERFILTER_H__
+#ifndef __FLATWORM_HEADERFILTER_H__
+#define __FLATWORM_HEADERFILTER_H__
 
 #include "ProxyServer.h"
 #include <sstream>
@@ -29,11 +29,11 @@ private:
 	
 public:
 	HeaderFilter (
-		SockPair& sockpair,
-		const FlowDirection whichInput,
+		Parasock & parasock,
+		FlowDirection whichInput,
 		bool isconnect
 	) :
-		Filter (sockpair, whichInput),
+		Filter (parasock, whichInput),
 		keepAlive (false),
 		contentLengthUnfiltered (UNKNOWN),
 		chunkedUnfiltered (false),
@@ -60,7 +60,7 @@ public:
 		return keepAlive;
 	}
 
-	std::string& getHeaderString() {
+	std::string & getHeaderString() {
 		return header;
 	}
 
@@ -103,15 +103,15 @@ public:
 
 	// return the line to add, if empty no line
 	virtual void processHeaderLine(
-		std::string& header,
-		const std::string key,
-		const std::string value
+		std::string & header,
+		std::string const key,
+		std::string const value
 	) = 0;
 
 	std::auto_ptr<Instruction> /* override */ runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) {
 		if (disconnected) {

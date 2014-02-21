@@ -5,8 +5,8 @@
 // at which point it returns Instruction::Quit
 //
 
-#ifndef __SERVERHEADERFILTER__
-#define __SERVERHEADERFILTER__
+#ifndef __FLATWORM_SERVERHEADERFILTER_H__
+#define __FLATWORM_SERVERHEADERFILTER_H__
 
 #include "parasock/Filter.h"
 #include "HeaderFilter.h"
@@ -20,21 +20,21 @@ public:
 
 public:
 	ServerHeaderFilter (
-		SockPair& sockpair,
-		const FlowDirection whichInput,
+		Parasock & parasock,
+		FlowDirection whichInput,
 		bool isconnect,
 		bool redirect
 	) : 
-		HeaderFilter (sockpair, whichInput, isconnect),
+		HeaderFilter (parasock, whichInput, isconnect),
 		redirect (redirect),
 		authenticate (false)
 	{
 	}
 
 	void processHeaderLine(
-		std::string& header,
-		const std::string key,
-		const std::string value
+		std::string & header,
+		std::string const key,
+		std::string const value
 	) /* override */ {
 		size_t sb = 0;
 		if (!strncasecmplen(key, "proxy-", 0, NULL)) {

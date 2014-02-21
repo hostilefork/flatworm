@@ -84,9 +84,9 @@
     <ClInclude Include="src\parasock\Filter.h" />
     <ClInclude Include="src\parasock\Helpers.h" />
     <ClInclude Include="src\parasock\NetUtils.h" />
+    <ClInclude Include="src\parasock\Parasock.h" />
     <ClInclude Include="src\parasock\PassthruFilter.h" />
     <ClInclude Include="src\parasock\SockBuf.h" />
-    <ClInclude Include="src\parasock\SockPair.h" />
     <ClInclude Include="src\PcreDataFilter.h" />
     <ClInclude Include="src\pcre\config.h" />
     <ClInclude Include="src\pcre\pcre.h" />
@@ -107,8 +107,8 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\parasock\Filter.cpp" />
     <ClCompile Include="src\parasock\NetUtils.cpp" />
+    <ClCompile Include="src\parasock\Parasock.cpp" />
     <ClCompile Include="src\parasock\SockBuf.cpp" />
-    <ClCompile Include="src\parasock\SockPair.cpp" />
     <ClCompile Include="src\PcreDataFilter.cpp" />
     <ClCompile Include="src\pcre\pcreposix.c" />
     <ClCompile Include="src\pcre\pcre_compile.c" />

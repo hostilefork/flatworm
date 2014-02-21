@@ -19,7 +19,7 @@
 // Also serves as debug hook to watch what we are putting on the wire.
 //
 
-int socksend(SOCKET sock, const char * buf, int bufsize, const Timeout timeout) {
+int socksend(SOCKET sock, char const * buf, int bufsize, Timeout timeout) {
 	int sent = 0;
 
 	do {
@@ -32,16 +32,16 @@ int socksend(SOCKET sock, const char * buf, int bufsize, const Timeout timeout) 
 			if	(pollRes < 0 && (errorno == EAGAIN || errorno == EINTR))
 				continue;
 
-			if(pollRes < 1) {
+			if (pollRes < 1) {
 				printf("SEND breaking loop on poll, what does this mean?\n");
 				break;
 			}
 		}
 
 		int sendRes = send(sock, buf + sent, bufsize - sent, 0);
-		if(sendRes < 0) {
+		if (sendRes < 0) {
 			int errorno = WSAGetLastError();
-			if(errorno == EAGAIN || errorno == EINTR)
+			if (errorno == EAGAIN || errorno == EINTR)
 				continue;
 
 			int err = WSAGetLastError();
@@ -57,9 +57,9 @@ int socksend(SOCKET sock, const char * buf, int bufsize, const Timeout timeout) 
 int socksendto(
 	SOCKET sock,
 	struct sockaddr_in * sin,
-	const char * buf,
+	char const * buf,
 	int bufsize,
-	const Timeout timeout
+	Timeout timeout
 ) {
 	int sent = 0;
  
@@ -70,9 +70,9 @@ int socksendto(
 
 		int pollRes = poll(&fds, 1, timeout);
 		int errorno = WSAGetLastError();
-		if(pollRes < 0 && (errorno == EAGAIN || errorno == EINTR))
+		if (pollRes < 0 && (errorno == EAGAIN || errorno == EINTR))
 			continue;
-		if(pollRes < 1)
+		if (pollRes < 1)
 			break;
 
 		int sendToRes = sendto(
@@ -84,9 +84,9 @@ int socksendto(
 			sizeof(struct sockaddr_in)
 		);
 
-		if(sendToRes < 0) {
+		if (sendToRes < 0) {
 			int errorno = WSAGetLastError();
-			if(errorno == EAGAIN)
+			if (errorno == EAGAIN)
 				continue;
 
 			return sendToRes;
@@ -103,7 +103,7 @@ int sockrecvfrom(
 	struct sockaddr_in * sin,
 	char * buf,
 	int bufsize,
-	const Timeout timeout
+	Timeout timeout
 ) {
 	MYPOLLFD fds;
 	fds.fd = sock;

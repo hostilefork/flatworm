@@ -1,11 +1,15 @@
 // 
-// SockPair.h
+// Parasock.h
 //
-// Socket proxying abstraction.
+// Abstraction to represent a pair of sockets used by the proxy
+// (a "pair of SOCKs", if you will :-P).
+//
+// This abstraction is central to the idea of mediating the connection
+// and rewriting the data between them, with the attachment of filters.
 //
 
-#ifndef __SOCKPAIR_H__
-#define __SOCKPAIR_H__
+#ifndef __PARASOCK_PARASOCK_H__
+#define __PARASOCK_PARASOCK_H__
 
 #include "SockBuf.h"
 
@@ -25,45 +29,46 @@ inline FlowDirection OtherDirection(FlowDirection which) {
 }
 
 
-class SockPair {
+class Parasock {
 
 	friend class Filter;
 
 public:
 	enum WhichConnection {
 		ClientConnection = 0,
-		ServerConnection = 1
+		ServerConnection = 1,
+		WhichConnectionMax
 	};
 
 public: // Need to work on this to make it private, 3Proxy startup is wily
-	std::auto_ptr<SockBuf> sockbuf[2];
-	SockPair () {
+	std::auto_ptr<SockBuf> sockbuf[WhichConnectionMax];
+	Parasock () {
 	}
 
 private:
 	// Disable copying C++98 style
-	SockPair (SockPair const & other);
+	Parasock (Parasock const & other);
 
 private:
 	void filterHelper(
-		const FlowDirection which,
-		const size_t offsetAmount,
-		const size_t readSoFar,
-		Filter& filter,
+		FlowDirection which,
+		size_t offsetAmount,
+		size_t readSoFar,
+		Filter & filter,
 		bool disconnected
 	);
 
 private:
 	// sends FILTERED data from OtherDirection(which) to which
 	size_t doUnidirectionalProxyCore(
-		const FlowDirection which,
+		FlowDirection which,
 		bool & timedOut,
 		bool & socketClosed,
-		const Timeout timeout
+		Timeout timeout
 	); 
 
 public:
-	size_t doUnidirectionalProxy(const FlowDirection which, const Timeout timeout) {
+	size_t doUnidirectionalProxy(FlowDirection which, Timeout timeout) {
 		bool timedOut;
 		bool socketClosed;
 		size_t bytesSent = doUnidirectionalProxyCore(
@@ -79,8 +84,8 @@ private:
 	void doBidirectionalFilteredProxyCore(
 		size_t (&readSoFar)[FlowDirectionMax],
 		size_t (&sentSoFar)[FlowDirectionMax],
-		bool (&socketClosed)[2],
-		bool (&readAZero)[2],
+		bool (&socketClosed)[FlowDirectionMax],
+		bool (&readAZero)[FlowDirectionMax],
 		bool & timedOut,
 		Timeout timeout,
 		Filter* (&filter)[FlowDirectionMax]
@@ -105,7 +110,7 @@ public:
 		sockbuf[ServerConnection]->cleanCheckpoint();
 	}
 
-	void failureShutdown(const std::string message, const Timeout timeout) {
+	void failureShutdown(std::string const message, Timeout timeout) {
 		sockbuf[ClientConnection]->failureShutdown(message, timeout);
 	}
 };

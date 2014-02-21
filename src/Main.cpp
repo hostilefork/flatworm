@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
 	srv.logdumpsrv = conf.logdumpsrv;
 	srv.logdumpcli = conf.logdumpcli;
 	defparam.srv = &srv;
-	defparam.sockpair.sockbuf[SockPair::ServerConnection].reset(new SockBuf());
-	defparam.sockpair.sockbuf[SockPair::ClientConnection].reset(new SockBuf());
+	defparam.parasock.sockbuf[Parasock::ServerConnection].reset(new SockBuf());
+	defparam.parasock.sockbuf[Parasock::ClientConnection].reset(new SockBuf());
 	defparam.ctrlsock = INVALID_SOCKET;
 	defparam.req.sin_family = AF_INET;
 	defparam.service = S_PROXY;
@@ -141,32 +141,32 @@ int main(int argc, char** argv) {
 	}
 
 
-	if(!srv.logtarget.empty())
+	if (!srv.logtarget.empty())
 		srv.logtarget = srv.logtarget;
 
-	if(!srv.intip) {
+	if (!srv.intip) {
 		srv.intip = conf.intip;
 	}
 
-	defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_addr.s_addr = srv.intip;
-	defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_port = srv.intport;
+	defparam.parasock.sockbuf[Parasock::ClientConnection]->sin.sin_addr.s_addr = srv.intip;
+	defparam.parasock.sockbuf[Parasock::ClientConnection]->sin.sin_port = srv.intport;
 	if (!srv.extip) {
 		srv.extip = conf.extip;
 	}
 
 	defparam.extip = srv.extip;
-	defparam.sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_addr.s_addr = srv.extip;
+	defparam.parasock.sockbuf[Parasock::ServerConnection]->sin.sin_addr.s_addr = srv.extip;
 	if (!srv.extport) {
 		srv.extport = htons(conf.extport);
 	}
 	defparam.extport = srv.extport;
-	defparam.sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_port = srv.extport;
+	defparam.parasock.sockbuf[Parasock::ServerConnection]->sin.sin_port = srv.extport;
 
 	if (!srv.intport) {
 		srv.intport = htons(3128);
 	}
-	if (!defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_port) {
-		defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_port = htons(3128);
+	if (!defparam.parasock.sockbuf[Parasock::ClientConnection]->sin.sin_port) {
+		defparam.parasock.sockbuf[Parasock::ClientConnection]->sin.sin_port = htons(3128);
 	}
 	if (hostname) {
 		parsehostname(hostname, &defparam, 3128);
@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
 
 	conf.threadinit = 0;
 
-	if(srv.srvsock == INVALID_SOCKET) {
+	if (srv.srvsock == INVALID_SOCKET) {
 		if (!isudp) {
 			lg.l_onoff = 1;
 			lg.l_linger = conf.timeouts[STRING_L].getSeconds();
@@ -205,13 +205,13 @@ int main(int argc, char** argv) {
 #endif
 	}
 
-	size = sizeof(defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin);
+	size = sizeof(defparam.parasock.sockbuf[Parasock::ClientConnection]->sin);
 
 	sleeptime = SLEEPTIME * 100;
 	for (;;) {
 		if (-1 != bind(
 			sock,
-			(struct sockaddr*)&defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin,
+			(struct sockaddr*)&defparam.parasock.sockbuf[Parasock::ClientConnection]->sin,
 			size
 		)) {
 			break;
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
 
 		sleeptime = (sleeptime << 1);	
 	
-		if(!sleeptime) {
+		if (!sleeptime) {
 			closesocket(sock);
 			return -3;
 		}
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
 			return -4;
 		}
 	} else { 
-		defparam.sockpair.sockbuf[SockPair::ClientConnection]->sock = sock;
+		defparam.parasock.sockbuf[Parasock::ClientConnection]->sock = sock;
 	}
 
 	if (!srv.silent) {
@@ -257,11 +257,11 @@ int main(int argc, char** argv) {
 		(*srv.logfunc)(&defparam, buf);
 	}
 
-	defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_addr.s_addr = 0;
-	defparam.sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_addr.s_addr = 0;
+	defparam.parasock.sockbuf[Parasock::ClientConnection]->sin.sin_addr.s_addr = 0;
+	defparam.parasock.sockbuf[Parasock::ServerConnection]->sin.sin_addr.s_addr = 0;
 
-	defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin.sin_port = 0;
-	defparam.sockpair.sockbuf[SockPair::ServerConnection]->sin.sin_port = 0;
+	defparam.parasock.sockbuf[Parasock::ClientConnection]->sin.sin_port = 0;
+	defparam.parasock.sockbuf[Parasock::ServerConnection]->sin.sin_port = 0;
 
 	srv.fds.fd = sock;
 	srv.fds.events = POLLIN;
@@ -269,12 +269,12 @@ int main(int argc, char** argv) {
 
 	for (;;) {
 		for (;;) {
-			while(
+			while (
 				(conf.paused == srv.version)
 				&& (srv.childcount >= srv.maxchild)
 			) {
 				nlog++;			
-				if(nlog > 5000) {
+				if (nlog > 5000) {
 					sprintf(
 						(char *)buf,
 						"Warning: too many connected clients (%d/%d)",
@@ -326,14 +326,14 @@ int main(int argc, char** argv) {
 		}
 
 		SOCKET new_sock = INVALID_SOCKET;
-		if(!isudp) {
-			size = sizeof(defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin);
+		if (!isudp) {
+			size = sizeof(defparam.parasock.sockbuf[Parasock::ClientConnection]->sin);
 			new_sock = accept(
 				sock,
-				(struct sockaddr*)&defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin,
+				(struct sockaddr*)&defparam.parasock.sockbuf[Parasock::ClientConnection]->sin,
 				&size
 			);
-			if(new_sock == INVALID_SOCKET) {
+			if (new_sock == INVALID_SOCKET) {
 				int errorno = WSAGetLastError();
 				sprintf((char *)buf, "accept(): %s", strerror(errorno));
 				if (!srv.silent) {
@@ -364,7 +364,7 @@ int main(int argc, char** argv) {
 			newparam->hostname= defparam.hostname;
 		}
 		if (!isudp) {
-			newparam->sockpair.sockbuf[SockPair::ClientConnection]->sock = new_sock;
+			newparam->parasock.sockbuf[Parasock::ClientConnection]->sock = new_sock;
 		}
 
 		newparam->prev = newparam->next = NULL;
@@ -394,12 +394,12 @@ int main(int argc, char** argv) {
 		}
 		pthread_mutex_unlock(&srv.counter_mutex);
 		memset(
-			&defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin,
+			&defparam.parasock.sockbuf[Parasock::ClientConnection]->sin,
 			0,
-			sizeof(defparam.sockpair.sockbuf[SockPair::ClientConnection]->sin)
+			sizeof(defparam.parasock.sockbuf[Parasock::ClientConnection]->sin)
 		);
-		if(isudp) {
-			while(!srv.fds.events)usleep(SLEEPTIME);
+		if (isudp) {
+			while (!srv.fds.events)usleep(SLEEPTIME);
 		}
 	}
 
@@ -417,7 +417,7 @@ int main(int argc, char** argv) {
 
 	srv.srvsock = INVALID_SOCKET;
 	srv.service = S_ZOMBIE;
-	while(srv.child) {
+	while (srv.child) {
  		usleep(SLEEPTIME * 100);
  	}
 

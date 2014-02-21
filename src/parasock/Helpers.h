@@ -4,8 +4,8 @@
 // Some basic helper routines for Proxlets.
 //
 
-#ifndef __HELPERS_H__
-#define __HELPERS_H__
+#ifndef __PARASOCK_HELPERS_H__
+#define __PARASOCK_HELPERS_H__
 
 #include <winsock2.h>
 #include <string>
@@ -50,7 +50,7 @@ inline int strncasecmplen(
 
 
 // http://www.codeguru.com/forum/archive/index.php/t-321849.html
-inline std::string TrimStr(const std::string& Src, const std::string& c = " \r\n")
+inline std::string TrimStr(std::string const & Src, std::string const & c = " \r\n")
 {
 	size_t p2 = Src.find_last_not_of(c);
 	if (p2 == std::string::npos)

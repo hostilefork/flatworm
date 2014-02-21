@@ -5,8 +5,8 @@
 // of Boost.ASIO (which I did not know about at the time of writing.)
 //
 
-#ifndef __FILTER_H__
-#define __FILTER_H__
+#ifndef __PARASOCK_FILTER_H__
+#define __PARASOCK_FILTER_H__
 
 #include <deque>
 #include <string>
@@ -16,8 +16,7 @@
 #include "Helpers.h"
 #include "NetUtils.h"
 
-#include "SockBuf.h"
-#include "SockPair.h"
+#include "Parasock.h"
 
 
 #ifdef SOCKWATCH
@@ -31,7 +30,7 @@ class Filter;
 class Instruction {
 
 	friend class SockBuf;
-	friend class SockPair;
+	friend class Parasock;
 	friend class Filter;
 
 public:
@@ -45,10 +44,10 @@ public:
 
 public:
 	const InstructionType type;
-	const size_t commitSize;
+	size_t commitSize;
 
 protected:
-	Instruction (const InstructionType type, const size_t commitSize) :
+	Instruction (const InstructionType type, size_t commitSize) :
 		commitSize (commitSize),
 		type (type)
 	{
@@ -66,7 +65,7 @@ public:
 // quit the filter
 class QuitFilterInstruction : public Instruction {
 public:
-	QuitFilterInstruction (const size_t commitSize) :
+	QuitFilterInstruction (size_t commitSize) :
 		Instruction (Instruction::QuitFilter, commitSize)
 	{ 
 	}
@@ -81,8 +80,8 @@ public:
 
 public:
 	ThruDelimiterInstruction(
-		const std::string delimiter,
-		const size_t commitSize
+		std::string const delimiter,
+		size_t commitSize
 	) :
 		Instruction (Instruction::ThruDelimiter, commitSize),
 		delimiter (delimiter)
@@ -99,7 +98,7 @@ public:
 	size_t maxByteCount;
 
 public:
-	BytesMaxInstruction(const size_t maxByteCount, const size_t commitSize) :
+	BytesMaxInstruction(size_t maxByteCount, size_t commitSize) :
 		Instruction (Instruction::BytesMax, commitSize),
 		maxByteCount (maxByteCount)
 	{
@@ -115,7 +114,7 @@ public:
 	size_t exactByteCount;
 
 public:
-	BytesExactInstruction(const size_t exactByteCount, const size_t commitSize) :
+	BytesExactInstruction(size_t exactByteCount, size_t commitSize) :
 		Instruction (Instruction::BytesExact, commitSize),
 		exactByteCount (exactByteCount)
 	{
@@ -127,7 +126,7 @@ public:
 // read an unknown number of bytes until the bytes stop coming
 class BytesUnknownInstruction : public Instruction {
 public:
-	BytesUnknownInstruction (const size_t commitSize) :
+	BytesUnknownInstruction (size_t commitSize) :
 		Instruction (Instruction::BytesUnknown, commitSize)
 	{
 	}
@@ -140,7 +139,7 @@ public:
 class Filter {
 
 	friend class SockBuf;
-	friend class SockPair;
+	friend class Parasock;
 
 private:
 	Knowable<size_t> lastReadSoFar;
@@ -154,28 +153,28 @@ private:
 	std::string bytesRead; // DEBUG
 
 public:
-	Filter(SockPair& sockpair, const FlowDirection whichInput);
+	Filter(Parasock & parasock, FlowDirection whichInput);
 
 protected:
-	const Instruction* currentInstruction() {
+	Instruction const * currentInstruction() {
 		return this->instruction.get();
 	}
 
 // only derived class may call these.  Must be from within a run method!
 // currently public instead of protected due to bad filter chaining methodology
 public: 
-	virtual void outputString(const std::string sendMe);
+	virtual void outputString(std::string const sendMe);
 	virtual std::auto_ptr<Placeholder> outputPlaceholder();
 	virtual void fulfillPlaceholder(
 		std::auto_ptr<Placeholder> placeholder,
-		const std::string contents
+		std::string const contents
 	);
 
 private:
 	virtual std::auto_ptr<Instruction> runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) = 0;
 	virtual std::auto_ptr<Instruction> firstInstruction() = 0;
@@ -194,9 +193,9 @@ private:
 	// Putting this all here in the base class interface so the somewhat
 	// complex invariants are documented more easily
 	void runWrapper(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) {
 		Assert((readSoFar > 0) || disconnected);
@@ -206,7 +205,7 @@ private:
 		);
 		
 		lastReadSoFar = readSoFar;
-		const size_t newChars = uncommittedBytes.length() - newDataOffset;
+		size_t newChars = uncommittedBytes.length() - newDataOffset;
 		uncommittedChars += newChars;
 		Assert(uncommittedBytes.length() == uncommittedChars);
 		bytesRead += uncommittedBytes.substr(newDataOffset, std::string::npos);

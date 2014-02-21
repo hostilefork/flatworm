@@ -129,8 +129,8 @@ file. */
 
 /* The functions */
 
-PCREPOSIX_EXP_DECL int regcomp(regex_t *, const char *, int);
-PCREPOSIX_EXP_DECL int regexec(const regex_t *, const char *, size_t,
+PCREPOSIX_EXP_DECL int regcomp(regex_t *, char const *, int);
+PCREPOSIX_EXP_DECL int regexec(const regex_t *, char const *, size_t,
                      regmatch_t *, int);
 PCREPOSIX_EXP_DECL size_t regerror(int, const regex_t *, char *, size_t);
 PCREPOSIX_EXP_DECL void regfree(regex_t *);

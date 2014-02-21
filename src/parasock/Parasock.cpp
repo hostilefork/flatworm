@@ -1,5 +1,5 @@
 // 
-// SockPair.cpp
+// Parasock.cpp
 //
 // Abstraction to represent a pair of sockets used by the proxy
 // (a "pair of SOCKs", if you will :-P).
@@ -10,14 +10,13 @@
 
 #include "Helpers.h"
 #include "NetUtils.h"
-#include "SockBuf.h"
-#include "SockPair.h"
+#include "Parasock.h"
 #include "Filter.h"
 #include "DeadFilter.h"
 
-void SockPair::doBidirectionalFilteredProxyEx(
+void Parasock::doBidirectionalFilteredProxyEx(
 	size_t (&readSoFar)[FlowDirectionMax],
-	const Timeout timeo,
+	Timeout timeo,
 	Filter* (&filter)[FlowDirectionMax]
 ) {
 	size_t readInitial[FlowDirectionMax];
@@ -31,8 +30,8 @@ void SockPair::doBidirectionalFilteredProxyEx(
 	}
 
 	bool timedOut;
-	bool socketClosed[2];
-	bool readAZero[2];
+	bool socketClosed[FlowDirectionMax];
+	bool readAZero[FlowDirectionMax];
 	doBidirectionalFilteredProxyCore(
 		readSoFar,
 		sentSoFar,
@@ -60,11 +59,11 @@ void SockPair::doBidirectionalFilteredProxyEx(
 }
 
 
-size_t SockPair::doUnidirectionalProxyCore(
-	const FlowDirection which,
-	bool& timedOut,
-	bool& socketClosed,
-	const Timeout timeout
+size_t Parasock::doUnidirectionalProxyCore(
+	FlowDirection which,
+	bool & timedOut,
+	bool & socketClosed,
+	Timeout timeout
 ) {
 	// If you don't know how much you want, just read while data is available
 
@@ -99,16 +98,16 @@ size_t SockPair::doUnidirectionalProxyCore(
 }
 
 
-void SockPair::filterHelper(
-	const FlowDirection which,
-	const size_t newDataOffset,
-	const size_t readSoFar,
-	Filter& filter,
+void Parasock::filterHelper(
+	FlowDirection which,
+	size_t newDataOffset,
+	size_t readSoFar,
+	Filter & filter,
 	bool disconnected
 ) {
 
 	size_t length = sockbuf[which]->uncommittedBytes.length();
-	const size_t newChars = length - newDataOffset;
+	size_t newChars = length - newDataOffset;
 
 	filter.runWrapper(
 		sockbuf[which]->uncommittedBytes,
@@ -117,7 +116,7 @@ void SockPair::filterHelper(
 		disconnected
 	);
 
-	const Instruction* instruction = filter.currentInstruction();
+	Instruction const * instruction = filter.currentInstruction();
 
 	if (disconnected) {
 		// can't read from not yet connected or closed socket
@@ -147,13 +146,13 @@ void SockPair::filterHelper(
 //
 // If you know the socket has already disconnected, PASS IN ZERO
 //
-void SockPair::doBidirectionalFilteredProxyCore(
-	size_t (&readSoFar)[2],
-	size_t (&sentSoFar)[2],
-	bool (&socketClosed)[2],
-	bool (&readAZero)[2],
-	bool& timedOut,
-	const Timeout timeout,
+void Parasock::doBidirectionalFilteredProxyCore(
+	size_t (&readSoFar)[FlowDirectionMax],
+	size_t (&sentSoFar)[FlowDirectionMax],
+	bool (&socketClosed)[FlowDirectionMax],
+	bool (&readAZero)[FlowDirectionMax],
+	bool & timedOut,
+	Timeout timeout,
 	Filter* (&filter)[FlowDirectionMax]
 ) {
 	timedOut = false;
@@ -203,7 +202,7 @@ LTryAgain:
 				else {
 					needToWrite[which] = 0;
 					if (sockbuf[which]->placeholders.front()->contentsKnown) {
-						std::deque<Placeholder*>::iterator it =
+						std::deque<Placeholder *>::iterator it =
 							sockbuf[which]->placeholders.begin();
 						while (
 							(it != sockbuf[which]->placeholders.end())
@@ -216,7 +215,7 @@ LTryAgain:
 					}
 				}
 
-				const Instruction* instruction;
+				Instruction const * instruction;
 				instruction = filter[which]->currentInstruction();
 
 				if ((sockbuf[which]->sock == INVALID_SOCKET) || readAZero[which]) {
@@ -233,7 +232,7 @@ LTryAgain:
 				} else {
 					size_t buflen = sockbuf[which]->uncommittedBytes.length();
 					size_t rawlen = sockbuf[which]->unfilteredBytes.length();
-					const size_t buflenInitial = buflen;
+					size_t buflenInitial = buflen;
 
 					switch(instruction->type) {
 					case Instruction::ThruDelimiter: {
@@ -243,8 +242,8 @@ LTryAgain:
 						size_t delimPos = sockbuf[which]->unfilteredBytes.find(inst->delimiter);
 						if (delimPos != std::string::npos) {
 							sockbuf[which]->uncommittedBytes +=
-								sockbuf[which]->unfilteredBytes.substr(0, delimPos+inst->delimiter.length());
-							sockbuf[which]->unfilteredBytes.erase(0, delimPos+inst->delimiter.length());
+								sockbuf[which]->unfilteredBytes.substr(0, delimPos + inst->delimiter.length());
+							sockbuf[which]->unfilteredBytes.erase(0, delimPos + inst->delimiter.length());
 							buflen += delimPos+inst->delimiter.length();
 							needToRead[which] = 0;
 						} else {
@@ -262,8 +261,9 @@ LTryAgain:
 							dynamic_cast<BytesExactInstruction const *>(instruction);
 						if (buflen + rawlen >= inst->exactByteCount) {
 							// just take enough unfilteredBytes data to get up to size
-							const size_t difference = inst->exactByteCount - buflen;
-							sockbuf[which]->uncommittedBytes += sockbuf[which]->unfilteredBytes.substr(0, difference);
+							size_t difference = inst->exactByteCount - buflen;
+							sockbuf[which]->uncommittedBytes +=
+								sockbuf[which]->unfilteredBytes.substr(0, difference);
 							buflen += difference;
 							sockbuf[which]->unfilteredBytes.erase(0, difference);
 							rawlen -= difference;
@@ -282,19 +282,22 @@ LTryAgain:
 						if (inst->maxByteCount <= buflen) {
 							needToRead[which] = 0;
 						} else {
-							// not enough uncommittedBytes data in buffer already, but try unfilteredBytes source first...
+							// not enough uncommittedBytes data in buffer already
+							// but try unfilteredBytes source first...
 
 							if (buflen + rawlen>= inst->maxByteCount) {
 								// just take enough unfilteredBytes data to get up to size
-								const size_t difference = inst->maxByteCount - buflen;
-								sockbuf[which]->uncommittedBytes += sockbuf[which]->unfilteredBytes.substr(0, difference);
+								size_t difference = inst->maxByteCount - buflen;
+								sockbuf[which]->uncommittedBytes +=
+									sockbuf[which]->unfilteredBytes.substr(0, difference);
 								buflen += difference;
 								sockbuf[which]->unfilteredBytes.erase(0, difference);
 								rawlen -= difference;
 
 								needToRead[which] = 0;
 							} else {
-								// the unfilteredBytes data couldn't satisfy, might as well take it all...
+								// the unfilteredBytes data couldn't satisfy
+								// might as well take it all...
 								sockbuf[which]->uncommittedBytes += sockbuf[which]->unfilteredBytes;
 								buflen += rawlen;
 
@@ -308,7 +311,8 @@ LTryAgain:
 					}
 							
 					case Instruction::BytesUnknown: {
-						// the unfilteredBytes data won't satisfy, might as well take it all...
+						// the unfilteredBytes data won't satisfy
+						// might as well take it all...
 						sockbuf[which]->uncommittedBytes += sockbuf[which]->unfilteredBytes;
 						buflen += rawlen;
 
@@ -329,7 +333,13 @@ LTryAgain:
 					received[which] = buflen;
 					readSoFar[which] += buflen - buflenInitial;
 					if (buflen - buflenInitial > 0) {
-						filterHelper(which, buflenInitial, readSoFar[which], *filter[which], false);
+						filterHelper(
+							which,
+							buflenInitial,
+							readSoFar[which],
+							*filter[which],
+							false
+						);
 
 						// okay, there's got to be a better way to do this...
 						// but now we have a new instruction,
@@ -368,7 +378,7 @@ LTryAgain:
 				if (!needToRead[which].isKnown() || (needToRead[which].getKnownValue() > 0))
 					fds[which].events |= POLLIN;
 				
-				if(needToWrite[which] > 0)
+				if (needToWrite[which] > 0)
 					fds[which].events |= POLLOUT;
 			}
 		}
@@ -376,24 +386,25 @@ LTryAgain:
 		// do the poll of the sockets and check the result
 		{
 			int pollRes = poll(fds, FlowDirectionMax, timeout);
-			if(pollRes == SOCKET_ERROR) {
+			if (pollRes == SOCKET_ERROR) {
 				int errorno = WSAGetLastError();
-				if(errorno == EINTR) {
+				if (errorno == EINTR) {
 					usleep(SLEEPTIME);
 	 				continue;
 				}
-				if(errorno == EAGAIN)
+				if (errorno == EAGAIN)
 					continue;
 				throw "Poll error not EINTR or EAGAIN";
 			}
-			if(pollRes == 0) { // the timeout period elapsed without the necessary data being fulfilled
+			if (pollRes == 0) {
+				// timeout period elapsed without necessary data being fulfilled
 				timedOut = true;
 				return;
 			}
 
 			FlowDirection which;
 			ForEachDirection(which) {
-			if( fds[which].revents & (POLLERR|POLLHUP|POLLNVAL ))
+			if ( fds[which].revents & (POLLERR|POLLHUP|POLLNVAL ))
 				throw "POLLERR|POLLHUP|POLLNVAL";
 			}
 		}
@@ -401,7 +412,7 @@ LTryAgain:
 		{ // do the sends, small chunks so we can time out?
 			FlowDirection which;
 			ForEachDirection(which) {
-				if(fds[which].revents & POLLOUT) {
+				if (fds[which].revents & POLLOUT) {
 					Assert(needToWrite[which] > 0);
 
 					size_t bytesSent = 0;
@@ -410,14 +421,11 @@ LTryAgain:
 						!sockbuf[which]->placeholders.empty()
 						&& sockbuf[which]->placeholders.front()->contentsKnown
 					) {
-						Placeholder* placeholder = sockbuf[which]->placeholders.front();
+						Placeholder * placeholder = sockbuf[which]->placeholders.front();
 						Assert(!placeholder->contents.empty());
 
 						size_t len = placeholder->contents.length();
-						std::deque<Placeholder*>::iterator it = sockbuf[which]->placeholders.begin();
-						Placeholder* first = it == sockbuf[which]->placeholders.end() ? NULL : *(it++);
-						Placeholder* second = it == sockbuf[which]->placeholders.end() ? NULL : *(it++);
-						Placeholder* third = it == sockbuf[which]->placeholders.end() ? NULL : *(it++);
+
 						int res;
 						std::string soFar;
 						if (true) {
@@ -536,7 +544,7 @@ LTryAgain:
 
 							// error, or possibly we just need to retry later?
 							int errorno = WSAGetLastError();
-							if((errorno == EAGAIN) || (errorno == EINTR))
+							if ((errorno == EAGAIN) || (errorno == EINTR))
 								break;
 							
 							if (errorno == WSAECONNABORTED) {
@@ -575,8 +583,8 @@ LTryAgain:
 
 							// better timeout handling?  will be easier when code is tightened
 							// here we got data
-							const size_t buflenInitial = buflen;
-							const Instruction* instruction = filter[which]->currentInstruction();
+							size_t buflenInitial = buflen;
+							Instruction const * instruction = filter[which]->currentInstruction();
 							Assert(instruction->type != Instruction::QuitFilter);
 							if (instruction->type == Instruction::BytesUnknown) {
 
@@ -596,9 +604,15 @@ LTryAgain:
 
 									// too much data received, we don't want the filter to see it all
 									// because we might want a different filter to run
-									sockbuf[which]->uncommittedBytes.append(buffer, needToRead[which].getKnownValue());
+									sockbuf[which]->uncommittedBytes.append(
+										buffer,
+										needToRead[which].getKnownValue()
+									);
 									buflen += needToRead[which].getKnownValue();
-									sockbuf[which]->unfilteredBytes.append(buffer + needToRead[which].getKnownValue(), len - needToRead[which].getKnownValue());
+									sockbuf[which]->unfilteredBytes.append(
+										buffer + needToRead[which].getKnownValue(),
+										len - needToRead[which].getKnownValue()
+									);
 								}
 
 							} else if (instruction->type == Instruction::ThruDelimiter) {
@@ -612,7 +626,10 @@ LTryAgain:
 										sockbuf[which]->unfilteredBytes.substr(
 											0, delimPos + inst->delimiter.length()
 										);
-									sockbuf[which]->unfilteredBytes.erase(0, delimPos + inst->delimiter.length());
+									sockbuf[which]->unfilteredBytes.erase(
+										0,
+										delimPos + inst->delimiter.length()
+									);
 									buflen += delimPos + inst->delimiter.length();
 								}
 							} else if (instruction->type == Instruction::BytesExact) {
@@ -623,9 +640,15 @@ LTryAgain:
 									sockbuf[which]->uncommittedBytes += sockbuf[which]->unfilteredBytes;
 									buflen += sockbuf[which]->unfilteredBytes.length();
 									sockbuf[which]->unfilteredBytes.clear();
-									sockbuf[which]->uncommittedBytes.append(buffer, needToRead[which].getKnownValue());
+									sockbuf[which]->uncommittedBytes.append(
+										buffer,
+										needToRead[which].getKnownValue()
+									);
 									buflen += needToRead[which].getKnownValue();
-									sockbuf[which]->unfilteredBytes.append(buffer + needToRead[which].getKnownValue(), len - needToRead[which].getKnownValue());
+									sockbuf[which]->unfilteredBytes.append(
+										buffer + needToRead[which].getKnownValue(),
+										len - needToRead[which].getKnownValue()
+									);
 								} else {
 									sockbuf[which]->unfilteredBytes.append(buffer, len);
 								}
@@ -634,7 +657,7 @@ LTryAgain:
 								NotReached();
 							}
 
-							const size_t difference = buflen - buflenInitial;
+							size_t difference = buflen - buflenInitial;
 							readSoFar[which] += difference;
 
 							if (difference > 0) {
@@ -666,8 +689,8 @@ LTryAgain:
 			}
 		}
 
-		if(sleeptime > 0) {
-			if(sleeptime > timeout.getMilliseconds()) {
+		if (sleeptime > 0) {
+			if (sleeptime > timeout.getMilliseconds()) {
 				throw "Sleep exceeds timeout in sock mapping.";
 			}
 			usleep(static_cast<DWORD>(sleeptime * SLEEPTIME));

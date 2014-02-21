@@ -6,8 +6,8 @@
 // abstractions used by SockBuf too.
 //
 
-#ifndef __NETUTILS_H__
-#define __NETUTILS_H__
+#ifndef __PARASOCK_NETUTILS_H__
+#define __PARASOCK_NETUTILS_H__
 
 #include <winsock2.h>
 
@@ -25,6 +25,12 @@ public:
 	Timeout () :
 		sec (-1),
 		usec (-1)
+	{
+	}
+
+	Timeout (Timeout const & other) :
+		sec (other.sec),
+		usec (other.usec)
 	{
 	}
 
@@ -104,9 +110,11 @@ int mypoll(MYPOLLFD *fds, unsigned int nfds, Timeout timeout);
 #endif
 
 int socksendto(
-	SOCKET sock, struct sockaddr_in * sin,
-	const char * buf, int bufsize,
-	const Timeout timeout
+	SOCKET sock,
+	struct sockaddr_in * sin,
+	char const * buf,
+	int bufsize,
+	Timeout timeout
 );
 
 int sockrecvfrom(
@@ -114,7 +122,7 @@ int sockrecvfrom(
 	struct sockaddr_in * sin,
 	char * buf,
 	int bufsize,
-	const Timeout timeout
+	Timeout timeout
 );
 
 #endif

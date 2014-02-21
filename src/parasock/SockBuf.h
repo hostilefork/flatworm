@@ -6,8 +6,8 @@
 // Does filtering
 //
 
-#ifndef __SOCKBUF_H__
-#define __SOCKBUF_H__
+#ifndef __PARASOCK_SOCKBUF_H__
+#define __PARASOCK_SOCKBUF_H__
 
 #include <deque>
 #include <algorithm>
@@ -15,7 +15,7 @@
 #include "NetUtils.h"
 #include "Helpers.h"
 
-class SockPair;
+class Parasock;
 
 //
 // You pass a std::auto_ptr<Placeholder> into an output stream
@@ -25,7 +25,7 @@ class SockPair;
 class Placeholder {
 
 	friend class SockBuf;
-	friend class SockPair;
+	friend class Parasock;
 
 private:
 	std::string contents;
@@ -41,7 +41,7 @@ class Filter;
 
 class SockBuf {
 
-	friend class SockPair;
+	friend class Parasock;
 	friend class Filter;
 
 // Currently public because we let other people connect the sockets
@@ -67,7 +67,7 @@ private:
 	std::string uncommittedBytes;
 
 private:
-	std::deque<Placeholder*> placeholders;
+	std::deque<Placeholder *> placeholders;
 
 public:
 	SockBuf();
@@ -82,12 +82,12 @@ public:
 
 	void fulfillPlaceholder(
 		std::auto_ptr<Placeholder> placeholder,
-		const std::string contents
+		std::string const contents
 	) {
 		Assert(placeholder.get() != NULL);
 		Assert(!placeholder->contentsKnown);
 		Assert(placeholder->owner == this);
-		std::deque<Placeholder*>::iterator it = std::find(
+		std::deque<Placeholder *>::iterator it = std::find(
 			placeholders.begin(),
 			placeholders.end(),
 			placeholder.get()
@@ -103,12 +103,12 @@ public:
 		}
 	}
 
-	void outputString(const std::string sendMe) {
+	void outputString(std::string const sendMe) {
 		if (
 			!placeholders.empty()
 			&& (placeholders.back()->contentsKnown)
 		) {
-			std::string& addToContents = placeholders.back()->contents;
+			std::string & addToContents = placeholders.back()->contents;
 
 			// merge if contents known of last placeholder
 			addToContents += sendMe; 
@@ -126,7 +126,7 @@ public:
 	}
 
 	bool definitelyHasFutureWrites() {
-		std::deque<Placeholder*>::iterator it = placeholders.begin();
+		std::deque<Placeholder *>::iterator it = placeholders.begin();
 		while (it != placeholders.end()) {
 			if ((*it)->contentsKnown) {
 				return true;
@@ -138,7 +138,7 @@ public:
 
 	void cleanCheckpoint();
 	void shutdownAndClose();
-	void failureShutdown(const std::string message, Timeout timeout);
+	void failureShutdown(std::string const message, Timeout timeout);
 
 	virtual ~SockBuf();
 };

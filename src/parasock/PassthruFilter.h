@@ -7,24 +7,24 @@
 // is actually transferred.
 //
 
-#ifndef __PASSTHRUFILTER_H__
-#define __PASSTHRUFILTER_H__
+#ifndef __PARASOCK_PASSTHRUFILTER_H__
+#define __PARASOCK_PASSTHRUFILTER_H__
 
 #include "Filter.h"
 
 class PassthruFilter : public Filter {
 private:
 	Knowable<size_t> totalSize;
-	const std::string sendFirst;
+	std::string const sendFirst;
 
 public:
 	PassthruFilter (
-		SockPair& sockpair,
-		const FlowDirection whichInput,
+		Parasock & parasock,
+		FlowDirection whichInput,
 		Knowable<size_t> totalSize = UNKNOWN,
-		const std::string sendFirst = ""
+		std::string const sendFirst = ""
 	) : 
-		Filter (sockpair, whichInput), 
+		Filter (parasock, whichInput), 
 		totalSize (totalSize),
 		sendFirst (sendFirst)
 	{
@@ -46,9 +46,9 @@ public:
 	}
 
 	std::auto_ptr<Instruction> runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) /* override */ {
 		if (disconnected) {

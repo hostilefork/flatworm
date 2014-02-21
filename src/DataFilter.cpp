@@ -10,27 +10,27 @@
 
 
 DataFilter::DataFilter (
-	SockPair& sockpair,
-	const FlowDirection whichInput,
-	const HeaderFilter& filterHeader
+	Parasock & parasock,
+	FlowDirection whichInput,
+	HeaderFilter const & headerFilter
 ) :
-	Filter (sockpair, whichInput),
+	Filter (parasock, whichInput),
 
-	contentLengthUnfiltered (filterHeader.getContentLengthUnfiltered()),
-	chunkedUnfiltered (filterHeader.getChunkedUnfiltered()),
+	contentLengthUnfiltered (headerFilter.getContentLengthUnfiltered()),
+	chunkedUnfiltered (headerFilter.getChunkedUnfiltered()),
 
 	filteredCharsSent (0),
 	chunkSize (UNKNOWN),
 	chunkSoFar (0),
 	// we can chunk output even if the input isn't chunked!
-	chunkedFiltered (filterHeader.getChunkedUnfiltered()),
+	chunkedFiltered (headerFilter.getChunkedUnfiltered()),
 	contentLengthFiltered (UNKNOWN),
 	chunkState (BeginChunk)
 {
 }
 
 
-void DataFilter::outputString(const std::string sendMe) {
+void DataFilter::outputString(std::string const sendMe) {
 	if (chunkedFiltered) {
 		currentChunk->charsWrittenWithoutputString += sendMe.length();
 	}
@@ -53,10 +53,10 @@ std::auto_ptr<Placeholder> DataFilter::outputPlaceholder() {
 
 void DataFilter::fulfillPlaceholder(
 	std::auto_ptr<Placeholder> placeholder,
-	const std::string contents
+	std::string const contents
 ) {
 	if (chunkedFiltered) {
-		std::vector<Placeholder*>::iterator it =
+		std::vector<Placeholder *>::iterator it =
 			std::find(
 				currentChunk->subPlaceholders.begin(),
 				currentChunk->subPlaceholders.end(),
@@ -91,9 +91,9 @@ std::auto_ptr<Instruction> DataFilter::firstInstruction() {
 
 
 std::auto_ptr<Instruction> DataFilter::runFilter(
-	const std::string& uncommittedBytes,
-	const size_t newDataOffset,
-	const size_t readSoFar,
+	std::string const & uncommittedBytes,
+	size_t newDataOffset,
+	size_t readSoFar,
 	bool disconnected
 ) {
 
@@ -146,7 +146,7 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 		if (chunkString.length() > 0) { 
 			subUnfiltered += chunkString;
 
-			const size_t buflenInitial = subUncommitted.length();
+			size_t buflenInitial = subUncommitted.length();
 
 			bool getMoreData = false;
 			while (!getMoreData) {
@@ -276,9 +276,9 @@ std::auto_ptr<Instruction> DataFilter::runFilter(
 		Assert(uncommittedBytes.find("\r\n") != std::string::npos);
 		Assert(uncommittedBytes[uncommittedBytes.length()-1] == '\n');
 		Assert(uncommittedBytes[uncommittedBytes.length()-2] == '\r');
-		const std::string& line = uncommittedBytes;
+		std::string const & line = uncommittedBytes;
 		int chunkSizeUnfilteredTemp = 0;
-		if(uncommittedBytes.length() < 3)
+		if (uncommittedBytes.length() < 3)
 				throw "Length field for chunked data less than for 0+CR+LF";
 		sscanf(line.c_str(), "%x", &chunkSizeUnfilteredTemp);
 

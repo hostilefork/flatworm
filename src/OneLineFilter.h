@@ -4,16 +4,16 @@
 // Reads a single line only, inherited by RequestLineFilter and ResponseLineFilter
 //
 
-#ifndef __ONELINEFILTER_H__
-#define __ONELINEFILTER_H__
+#ifndef __FLATWORM_ONELINEFILTER_H__
+#define __FLATWORM_ONELINEFILTER_H__
 
 #include "parasock/Filter.h"
 
 class OneLineFilter : public Filter {
 
 public:
-	OneLineFilter (SockPair& sockpair, const FlowDirection whichInput) : 
-		Filter (sockpair, whichInput)
+	OneLineFilter (Parasock & parasock, FlowDirection whichInput) : 
+		Filter (parasock, whichInput)
 	{
 	}
 
@@ -23,12 +23,12 @@ public:
 		);
 	}
 
-	virtual void processTheLine(const std::string& line) = 0;
+	virtual void processTheLine(std::string const & line) = 0;
 
 	virtual std::auto_ptr<Instruction> runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) {
 		if (disconnected) {

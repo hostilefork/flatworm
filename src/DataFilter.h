@@ -6,8 +6,8 @@
 // The sub-filtering system is not implemented yet.
 //
 
-#ifndef __DATAFILTER_H__
-#define __DATAFILTER_H__
+#ifndef __FLATWORM_DATAFILTER_H__
+#define __FLATWORM_DATAFILTER_H__
 
 #include "HeaderFilter.h"
 
@@ -56,13 +56,13 @@ private:
 	private:
 		// can't fulfill until the data is all known
 		std::auto_ptr<Placeholder> sizePlaceholder; 
-		std::vector<Placeholder*> subPlaceholders;
+		std::vector<Placeholder *> subPlaceholders;
 		size_t charsWrittenWithoutputString;
 		bool wasWritten;
-		Filter& owningFilter;
+		Filter & owningFilter;
 
 	public:
-		Chunk (Filter& owningFilter) :
+		Chunk (Filter & owningFilter) :
 			charsWrittenWithoutputString(0),
 			wasWritten (false),
 			owningFilter (owningFilter)
@@ -116,9 +116,9 @@ private:
 
 public:
 	DataFilter(
-		SockPair& sockpair,
-		const FlowDirection whichInput,
-		const HeaderFilter& filterHeaderServer
+		Parasock & parasock,
+		FlowDirection whichInput,
+		HeaderFilter const & headerFilterServer
 	);
 
 public:
@@ -132,27 +132,27 @@ public:
 
 // these are overridden so you don't put the output directly on the wire...
 protected:
-	void outputString(const std::string sendMe) /* override */;
+	void outputString(std::string const sendMe) /* override */;
 	std::auto_ptr<Placeholder> outputPlaceholder() /* override */;
 	void fulfillPlaceholder(
-		std::auto_ptr<Placeholder> placeholder, const std::string contents
+		std::auto_ptr<Placeholder> placeholder, std::string const contents
 	) /* override */;
 
 public:
 	virtual std::auto_ptr<Instruction> firstInstructionSubCore() = 0;
 	virtual std::auto_ptr<Instruction> runSubCore(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) = 0;
 
 public:
 	std::auto_ptr<Instruction> firstInstruction();
 	std::auto_ptr<Instruction> runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) /* override */;
 	~DataFilter() /* override */;

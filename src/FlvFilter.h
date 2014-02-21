@@ -4,8 +4,8 @@
 // Beginnings of a Flash Video filter, that may or may not come to fruition.
 //
 
-#ifndef __FLVFILTER_H__
-#define __FLVFILTER_H__
+#ifndef __FLATWORM_FLVFILTER_H__
+#define __FLATWORM_FLVFILTER_H__
 
 #include "parasock/Filter.h"
 #include "HeaderFilter.h"
@@ -51,11 +51,11 @@ private:
 
 public:
 	FlvFilter (
-		SockPair& sockpair,
-		const FlowDirection whichInput,
-		const HeaderFilter& filterHeader
+		Parasock & parasock,
+		FlowDirection whichInput,
+		HeaderFilter const & filterHeader
 	) :
-		Filter(sockpair, whichInput),
+		Filter(parasock, whichInput),
 		totalSize (filterHeader.getContentLengthUnfiltered()),
 		flvstate (ReadFlvHeader)
 	{
@@ -84,9 +84,9 @@ public:
 	}
 
 	std::auto_ptr<Instruction> FlvFilter::runFilter(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) {
 
@@ -112,8 +112,8 @@ public:
 			case ReadFlvHeader: {
 				// we should have read the mandatory 9 bytes!
 				Assert(uncommittedBytes.length() == 9);
-				const FLV_HEADER* flvHeader =
-					reinterpret_cast<const FLV_HEADER*>(uncommittedBytes.c_str());
+				FLV_HEADER const * flvHeader =
+					reinterpret_cast<FLV_HEADER const *>(uncommittedBytes.c_str());
 
 				instruction = std::auto_ptr<Instruction>(
 					new BytesExactInstruction(

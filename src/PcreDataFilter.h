@@ -6,8 +6,8 @@
 // library (PCRE)
 //
 
-#ifndef __PCREDATAFILTER_H__
-#define __PCREDATAFILTER_H__
+#ifndef __FLATWORM_PCREDATAFILTER_H__
+#define __FLATWORM_PCREDATAFILTER_H__
 
 #include "DataFilter.h"
 
@@ -20,23 +20,23 @@ private:
 	std::string replace;
 
 protected:
-	void filterBuffer(std::string& buf);
+	void filterBuffer(std::string & buf);
 
 public:
 	PcreDataFilter(
-		SockPair& sockpair,
-		const FlowDirection whichInput,
-		const HeaderFilter& filterHeaderServer,
-		const std::string regularExpression,
-		const std::string replaceString
+		Parasock & parasock,
+		FlowDirection whichInput,
+		HeaderFilter const & headerFilterServer,
+		std::string const regularExpression,
+		std::string const replaceString
 	);
 
 public:
 	std::auto_ptr<Instruction> firstInstructionSubCore() /* override */;
 	std::auto_ptr<Instruction> runSubCore(
-		const std::string& uncommittedBytes,
-		const size_t newDataOffset,
-		const size_t readSoFar,
+		std::string const & uncommittedBytes,
+		size_t newDataOffset,
+		size_t readSoFar,
 		bool disconnected
 	) /* override */;
 	~PcreDataFilter() /* override */;
