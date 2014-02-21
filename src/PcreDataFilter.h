@@ -11,6 +11,7 @@
 
 #include "DataFilter.h"
 
+#include "pcre/config.h"
 #include "pcre/pcre.h"
 #include "pcre/pcreposix.h"
 

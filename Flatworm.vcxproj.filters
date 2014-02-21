@@ -128,9 +128,6 @@
     <ClCompile Include="src\PcreDataFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pcre\ucptable.c">
-      <Filter>Source Files\pcre</Filter>
-    </ClCompile>
     <ClCompile Include="src\pcre\pcre_compile.c">
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
@@ -138,9 +135,6 @@
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_dfa_exec.c">
-      <Filter>Source Files\pcre</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pcre\pcre_dftables.c">
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_exec.c">
@@ -153,9 +147,6 @@
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_globals.c">
-      <Filter>Source Files\pcre</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pcre\pcre_info.c">
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_maketables.c">
@@ -174,12 +165,6 @@
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_tables.c">
-      <Filter>Source Files\pcre</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pcre\pcre_try_flipped.c">
-      <Filter>Source Files\pcre</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pcre\pcre_ucp_searchfuncs.c">
       <Filter>Source Files\pcre</Filter>
     </ClCompile>
     <ClCompile Include="src\pcre\pcre_valid_utf8.c">
@@ -205,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="src\parasock\SockBuf.cpp">
       <Filter>Source Files\parasock</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pcre\pcre_chartables.c">
+      <Filter>Source Files\pcre</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
