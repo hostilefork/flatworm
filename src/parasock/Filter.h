@@ -43,11 +43,11 @@ public:
 	};
 
 public:
-	const InstructionType type;
+	InstructionType type;
 	size_t commitSize;
 
 protected:
-	Instruction (const InstructionType type, size_t commitSize) :
+	Instruction (InstructionType type, size_t commitSize) :
 		commitSize (commitSize),
 		type (type)
 	{
@@ -55,7 +55,7 @@ protected:
 
 private:
 	// Disable copying, C++98 style
-	Instruction(const Instruction& other);
+	Instruction(Instruction const & other);
 
 public:
 	virtual ~Instruction() { }
