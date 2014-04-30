@@ -1,4 +1,5 @@
 Debug/*
 Release/*
-Flatworm.suo
+*.suo
+*.vcxproj.user
 !.gitignore
